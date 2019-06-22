@@ -15,7 +15,7 @@ Additionally, Coroutine provides the following features:
 
 # How to Use
 ## Setting up the CoroutineHandler
-The `CoroutineHandler` is the place where coroutines get executed. For this to occur, the `Tick` method needs to be called continuously. This can either be done in your application's existing update loop or as follows:
+The `CoroutineHandler` is the place where coroutines get executed. For this to occur, the `Tick` method needs to be called continuously. The `Tick` method takes a single parameter which represents the amount of seconds since the last time it was called. It can either be called in your application's existing update loop or as follows.
 ```cs
 var lastTime = DateTime.Now;
 while (true) {
@@ -64,3 +64,6 @@ To actually cause the event to be raised, causing all currently waiting coroutin
 ```cs
 CoroutineHandler.RaiseEvent(TestEvent);
 ```
+
+## Additional Examples
+For additional examples, take a look at the [Example class](https://github.com/Ellpeck/Coroutine/blob/master/Test/Example.cs).
