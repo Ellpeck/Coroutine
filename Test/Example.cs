@@ -40,8 +40,6 @@ namespace Test {
         }
 
         private static IEnumerator<Wait> WaitForTestEvent() {
-            yield return new WaitSeconds(5);
-            Console.WriteLine("Waited 5 seconds before waiting for the event");
             yield return new WaitEvent(TestEvent);
             Console.WriteLine("Test event received");
         }
