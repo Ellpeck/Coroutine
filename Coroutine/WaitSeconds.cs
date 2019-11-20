@@ -1,5 +1,7 @@
+using System;
+
 namespace Coroutine {
-    public class WaitSeconds : Wait {
+    public struct WaitSeconds : IWait {
 
         private double seconds;
 
@@ -7,13 +9,17 @@ namespace Coroutine {
             this.seconds = seconds;
         }
 
-        public override WaitType GetWaitType() {
+        public WaitType GetWaitType() {
             return WaitType.Tick;
         }
 
-        public override bool Tick(double deltaSeconds) {
+        public bool Tick(double deltaSeconds) {
             this.seconds -= deltaSeconds;
             return this.seconds <= 0;
+        }
+
+        public bool OnEvent(Event evt) {
+            throw new NotSupportedException();
         }
 
     }

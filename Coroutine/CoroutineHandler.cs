@@ -7,13 +7,17 @@ namespace Coroutine {
         private static readonly List<Coroutine> TickingCoroutines = new List<Coroutine>();
         private static readonly List<Coroutine> EventCoroutines = new List<Coroutine>();
 
-        public static void Start(IEnumerator<Wait> coroutine) {
+        public static void Start(IEnumerator<IWait> coroutine) {
             var inst = new Coroutine(coroutine);
             var type = inst.GetCurrentType();
             if (type == WaitType.Tick)
                 TickingCoroutines.Add(inst);
             else if (type == WaitType.Event)
                 EventCoroutines.Add(inst);
+        }
+
+        public static void InvokeLater(IWait wait, Action action) {
+            Start(InvokeLaterImpl(wait, action));
         }
 
         public static void Tick(double deltaSeconds) {
@@ -38,6 +42,11 @@ namespace Coroutine {
                     TickingCoroutines.Add(coroutine);
                 }
             }
+        }
+
+        private static IEnumerator<IWait> InvokeLaterImpl(IWait wait, Action action) {
+            yield return wait;
+            action();
         }
 
     }

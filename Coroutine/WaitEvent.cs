@@ -1,5 +1,7 @@
+using System;
+
 namespace Coroutine {
-    public class WaitEvent : Wait {
+    public struct WaitEvent : IWait {
 
         private readonly Event evt;
 
@@ -7,11 +9,15 @@ namespace Coroutine {
             this.evt = evt;
         }
 
-        public override WaitType GetWaitType() {
+        public WaitType GetWaitType() {
             return WaitType.Event;
         }
 
-        public override bool OnEvent(Event evt) {
+        public bool Tick(double deltaSeconds) {
+            throw new NotSupportedException();
+        }
+
+        public bool OnEvent(Event evt) {
             return evt == this.evt;
         }
 

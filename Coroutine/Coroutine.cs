@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 
 namespace Coroutine {
-    internal class Coroutine {
+    internal struct Coroutine {
 
-        private readonly IEnumerator<Wait> enumerator;
+        private readonly IEnumerator<IWait> enumerator;
 
-        public Coroutine(IEnumerator<Wait> enumerator) {
+        public Coroutine(IEnumerator<IWait> enumerator) {
             this.enumerator = enumerator;
             this.enumerator.MoveNext();
         }

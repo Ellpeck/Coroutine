@@ -10,9 +10,13 @@ namespace Test {
 
         public static void Main() {
             CoroutineHandler.Start(WaitSeconds());
-            CoroutineHandler.Start(RaiseTestEvent());
-            CoroutineHandler.Start(WaitForTestEvent());
             CoroutineHandler.Start(PrintEvery5Seconds());
+
+            CoroutineHandler.InvokeLater(new WaitSeconds(10), () => {
+                Console.WriteLine("Raising test event");
+                CoroutineHandler.RaiseEvent(TestEvent);
+            });
+            CoroutineHandler.InvokeLater(new WaitEvent(TestEvent), () => Console.WriteLine("Test event received"));
 
             var lastTime = DateTime.Now;
             while (true) {
@@ -23,28 +27,23 @@ namespace Test {
             }
         }
 
-        private static IEnumerator<Wait> WaitSeconds() {
+        private static IEnumerator<IWait> WaitSeconds() {
             Console.WriteLine("First thing " + DateTime.Now);
             yield return new WaitSeconds(1);
             Console.WriteLine("After 1 second " + DateTime.Now);
-            yield return new WaitSeconds(5);
-            Console.WriteLine("After 5 seconds " + DateTime.Now);
-            yield return new WaitSeconds(10);
+            yield return new WaitSeconds(9);
             Console.WriteLine("After 10 seconds " + DateTime.Now);
-        }
-
-        private static IEnumerator<Wait> RaiseTestEvent() {
+            yield return new WaitSeconds(5);
+            Console.WriteLine("After 5 more seconds " + DateTime.Now);
             yield return new WaitSeconds(10);
-            Console.WriteLine("Raising test event");
-            CoroutineHandler.RaiseEvent(TestEvent);
+            Console.WriteLine("After 10 more seconds " + DateTime.Now);
+
+            yield return new WaitSeconds(20);
+            Console.WriteLine("Done");
+            Environment.Exit(0);
         }
 
-        private static IEnumerator<Wait> WaitForTestEvent() {
-            yield return new WaitEvent(TestEvent);
-            Console.WriteLine("Test event received");
-        }
-
-        private static IEnumerator<Wait> PrintEvery5Seconds() {
+        private static IEnumerator<IWait> PrintEvery5Seconds() {
             while (true) {
                 yield return new WaitSeconds(10);
                 Console.WriteLine("The time is " + DateTime.Now);
