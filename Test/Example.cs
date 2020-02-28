@@ -9,8 +9,8 @@ namespace Test {
         private static readonly Event TestEvent = new Event();
 
         public static void Main() {
-            CoroutineHandler.Start(WaitSeconds());
-            CoroutineHandler.Start(PrintEvery5Seconds());
+            var seconds = CoroutineHandler.Start(WaitSeconds());
+            CoroutineHandler.Start(PrintEvery10Seconds(seconds));
 
             CoroutineHandler.InvokeLater(new WaitSeconds(10), () => {
                 Console.WriteLine("Raising test event");
@@ -39,14 +39,17 @@ namespace Test {
             Console.WriteLine("After 10 more seconds " + DateTime.Now);
 
             yield return new WaitSeconds(20);
-            Console.WriteLine("Done");
-            Environment.Exit(0);
+            Console.WriteLine("First coroutine done");
         }
 
-        private static IEnumerator<IWait> PrintEvery5Seconds() {
+        private static IEnumerator<IWait> PrintEvery10Seconds(ActiveCoroutine first) {
             while (true) {
                 yield return new WaitSeconds(10);
                 Console.WriteLine("The time is " + DateTime.Now);
+                if (first.IsFinished) {
+                    Console.WriteLine("By the way, the first coroutine has finished!");
+                    Environment.Exit(0);
+                }
             }
         }
 

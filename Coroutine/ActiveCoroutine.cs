@@ -1,34 +1,35 @@
 using System.Collections.Generic;
 
 namespace Coroutine {
-    internal struct Coroutine {
+    public class ActiveCoroutine {
 
         private readonly IEnumerator<IWait> enumerator;
+        public bool IsFinished { get; private set; }
 
-        public Coroutine(IEnumerator<IWait> enumerator) {
+        internal ActiveCoroutine(IEnumerator<IWait> enumerator) {
             this.enumerator = enumerator;
             this.enumerator.MoveNext();
         }
 
-        public bool Tick(double deltaSeconds) {
+        internal bool Tick(double deltaSeconds) {
             var curr = this.enumerator.Current;
             if (curr != null && curr.Tick(deltaSeconds)) {
                 if (!this.enumerator.MoveNext())
-                    return true;
+                    this.IsFinished = true;
             }
-            return false;
+            return this.IsFinished;
         }
 
-        public bool OnEvent(Event evt) {
+        internal bool OnEvent(Event evt) {
             var curr = this.enumerator.Current;
             if (curr != null && curr.OnEvent(evt)) {
                 if (!this.enumerator.MoveNext())
-                    return true;
+                    this.IsFinished = true;
             }
-            return false;
+            return this.IsFinished;
         }
 
-        public WaitType GetCurrentType() {
+        internal WaitType GetCurrentType() {
             return this.enumerator.Current.GetWaitType();
         }
 
