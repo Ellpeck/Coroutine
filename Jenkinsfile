@@ -16,7 +16,7 @@ pipeline {
 
     stage('Publish') {
       steps {
-        sh '''dotnet nuget push -s http://localhost:5000/v3/index.json $i -k $BAGET -n true
+        sh '''dotnet nuget push -s http://localhost:5000/v3/index.json **/Coroutine.csproj -k $BAGET -n true
 '''
       }
     }
