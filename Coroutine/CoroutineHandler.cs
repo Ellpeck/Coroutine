@@ -17,6 +17,14 @@ namespace Coroutine {
             return inst;
         }
 
+        public static bool Stop(ActiveCoroutine coroutine) {
+            if (TickingCoroutines.Remove(coroutine) || EventCoroutines.Remove(coroutine)) {
+                coroutine.Finish(true);
+                return true;
+            }
+            return false;
+        }
+
         public static void InvokeLater(IWait wait, Action action) {
             Start(InvokeLaterImpl(wait, action));
         }
