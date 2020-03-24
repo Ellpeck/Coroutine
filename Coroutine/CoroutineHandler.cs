@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Coroutine {
     public static class CoroutineHandler {
@@ -51,6 +52,10 @@ namespace Coroutine {
                     TickingCoroutines.Add(coroutine);
                 }
             }
+        }
+
+        public static IEnumerable<ActiveCoroutine> GetActiveCoroutines() {
+            return TickingCoroutines.Concat(EventCoroutines);
         }
 
         private static IEnumerator<IWait> InvokeLaterImpl(IWait wait, Action action) {
