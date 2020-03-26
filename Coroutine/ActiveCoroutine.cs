@@ -14,36 +14,45 @@ namespace Coroutine {
             this.enumerator.MoveNext();
         }
 
+        public bool Cancel() {
+            if (this.IsFinished || this.WasCanceled)
+                return false;
+            this.WasCanceled = true;
+            this.IsFinished = true;
+            this.OnFinished?.Invoke(this);
+            return true;
+        }
+
         internal bool Tick(double deltaSeconds) {
-            var curr = this.enumerator.Current;
-            if (curr != null && curr.Tick(deltaSeconds))
-                this.MoveNext();
+            if (!this.WasCanceled) {
+                var curr = this.enumerator.Current;
+                if (curr != null && curr.Tick(deltaSeconds))
+                    this.MoveNext();
+            }
             return this.IsFinished;
         }
 
         internal bool OnEvent(Event evt) {
-            var curr = this.enumerator.Current;
-            if (curr != null && curr.OnEvent(evt))
-                this.MoveNext();
+            if (!this.WasCanceled) {
+                var curr = this.enumerator.Current;
+                if (curr != null && curr.OnEvent(evt))
+                    this.MoveNext();
+            }
             return this.IsFinished;
         }
 
-        internal void Finish(bool cancel) {
-            this.IsFinished = true;
-            this.WasCanceled = cancel;
-            this.OnFinished?.Invoke(this, cancel);
-        }
-
         private void MoveNext() {
-            if (!this.enumerator.MoveNext())
-                this.Finish(false);
+            if (!this.enumerator.MoveNext()) {
+                this.IsFinished = true;
+                this.OnFinished?.Invoke(this);
+            }
         }
 
         internal WaitType GetCurrentType() {
             return this.enumerator.Current.GetWaitType();
         }
 
-        public delegate void FinishCallback(ActiveCoroutine coroutine, bool canceled);
+        public delegate void FinishCallback(ActiveCoroutine coroutine);
 
     }
 }

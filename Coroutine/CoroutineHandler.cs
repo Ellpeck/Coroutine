@@ -18,14 +18,6 @@ namespace Coroutine {
             return inst;
         }
 
-        public static bool Stop(ActiveCoroutine coroutine) {
-            if (TickingCoroutines.Remove(coroutine) || EventCoroutines.Remove(coroutine)) {
-                coroutine.Finish(true);
-                return true;
-            }
-            return false;
-        }
-
         public static void InvokeLater(IWait wait, Action action) {
             Start(InvokeLaterImpl(wait, action));
         }
@@ -34,9 +26,9 @@ namespace Coroutine {
             for (var i = TickingCoroutines.Count - 1; i >= 0; i--) {
                 var coroutine = TickingCoroutines[i];
                 if (coroutine.Tick(deltaSeconds)) {
-                    TickingCoroutines.Remove(coroutine);
+                    TickingCoroutines.RemoveAt(i);
                 } else if (coroutine.GetCurrentType() != WaitType.Tick) {
-                    TickingCoroutines.Remove(coroutine);
+                    TickingCoroutines.RemoveAt(i);
                     EventCoroutines.Add(coroutine);
                 }
             }
@@ -46,9 +38,9 @@ namespace Coroutine {
             for (var i = EventCoroutines.Count - 1; i >= 0; i--) {
                 var coroutine = EventCoroutines[i];
                 if (coroutine.OnEvent(evt)) {
-                    EventCoroutines.Remove(coroutine);
+                    EventCoroutines.RemoveAt(i);
                 } else if (coroutine.GetCurrentType() != WaitType.Event) {
-                    EventCoroutines.Remove(coroutine);
+                    EventCoroutines.RemoveAt(i);
                     TickingCoroutines.Add(coroutine);
                 }
             }
