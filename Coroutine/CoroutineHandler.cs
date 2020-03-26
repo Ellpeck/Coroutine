@@ -34,9 +34,9 @@ namespace Coroutine {
             for (var i = TickingCoroutines.Count - 1; i >= 0; i--) {
                 var coroutine = TickingCoroutines[i];
                 if (coroutine.Tick(deltaSeconds)) {
-                    TickingCoroutines.RemoveAt(i);
+                    TickingCoroutines.Remove(coroutine);
                 } else if (coroutine.GetCurrentType() != WaitType.Tick) {
-                    TickingCoroutines.RemoveAt(i);
+                    TickingCoroutines.Remove(coroutine);
                     EventCoroutines.Add(coroutine);
                 }
             }
@@ -46,9 +46,9 @@ namespace Coroutine {
             for (var i = EventCoroutines.Count - 1; i >= 0; i--) {
                 var coroutine = EventCoroutines[i];
                 if (coroutine.OnEvent(evt)) {
-                    EventCoroutines.RemoveAt(i);
+                    EventCoroutines.Remove(coroutine);
                 } else if (coroutine.GetCurrentType() != WaitType.Event) {
-                    EventCoroutines.RemoveAt(i);
+                    EventCoroutines.Remove(coroutine);
                     TickingCoroutines.Add(coroutine);
                 }
             }
