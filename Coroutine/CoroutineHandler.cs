@@ -7,28 +7,23 @@ namespace Coroutine {
 
         private static readonly List<ActiveCoroutine> TickingCoroutines = new List<ActiveCoroutine>();
         private static readonly List<ActiveCoroutine> EventCoroutines = new List<ActiveCoroutine>();
-        private static readonly object Lock = new object();
 
         public static ActiveCoroutine Start(IEnumerator<IWait> coroutine) {
-            lock (Lock) {
-                var inst = new ActiveCoroutine(coroutine);
-                var type = inst.GetCurrentType();
-                if (type == WaitType.Tick)
-                    TickingCoroutines.Add(inst);
-                else if (type == WaitType.Event)
-                    EventCoroutines.Add(inst);
-                return inst;
-            }
+            var inst = new ActiveCoroutine(coroutine);
+            var type = inst.GetCurrentType();
+            if (type == WaitType.Tick)
+                TickingCoroutines.Add(inst);
+            else if (type == WaitType.Event)
+                EventCoroutines.Add(inst);
+            return inst;
         }
 
         public static bool Stop(ActiveCoroutine coroutine) {
-            lock (Lock) {
-                if (TickingCoroutines.Remove(coroutine) || EventCoroutines.Remove(coroutine)) {
-                    coroutine.Finish(true);
-                    return true;
-                }
-                return false;
+            if (TickingCoroutines.Remove(coroutine) || EventCoroutines.Remove(coroutine)) {
+                coroutine.Finish(true);
+                return true;
             }
+            return false;
         }
 
         public static void InvokeLater(IWait wait, Action action) {
@@ -36,37 +31,31 @@ namespace Coroutine {
         }
 
         public static void Tick(double deltaSeconds) {
-            lock (Lock) {
-                for (var i = TickingCoroutines.Count - 1; i >= 0; i--) {
-                    var coroutine = TickingCoroutines[i];
-                    if (coroutine.Tick(deltaSeconds)) {
-                        TickingCoroutines.RemoveAt(i);
-                    } else if (coroutine.GetCurrentType() != WaitType.Tick) {
-                        TickingCoroutines.RemoveAt(i);
-                        EventCoroutines.Add(coroutine);
-                    }
+            for (var i = TickingCoroutines.Count - 1; i >= 0; i--) {
+                var coroutine = TickingCoroutines[i];
+                if (coroutine.Tick(deltaSeconds)) {
+                    TickingCoroutines.RemoveAt(i);
+                } else if (coroutine.GetCurrentType() != WaitType.Tick) {
+                    TickingCoroutines.RemoveAt(i);
+                    EventCoroutines.Add(coroutine);
                 }
             }
         }
 
         public static void RaiseEvent(Event evt) {
-            lock (Lock) {
-                for (var i = EventCoroutines.Count - 1; i >= 0; i--) {
-                    var coroutine = EventCoroutines[i];
-                    if (coroutine.OnEvent(evt)) {
-                        EventCoroutines.RemoveAt(i);
-                    } else if (coroutine.GetCurrentType() != WaitType.Event) {
-                        EventCoroutines.RemoveAt(i);
-                        TickingCoroutines.Add(coroutine);
-                    }
+            for (var i = EventCoroutines.Count - 1; i >= 0; i--) {
+                var coroutine = EventCoroutines[i];
+                if (coroutine.OnEvent(evt)) {
+                    EventCoroutines.RemoveAt(i);
+                } else if (coroutine.GetCurrentType() != WaitType.Event) {
+                    EventCoroutines.RemoveAt(i);
+                    TickingCoroutines.Add(coroutine);
                 }
             }
         }
 
         public static IEnumerable<ActiveCoroutine> GetActiveCoroutines() {
-            lock (Lock) {
-                return TickingCoroutines.Concat(EventCoroutines);
-            }
+            return TickingCoroutines.Concat(EventCoroutines);
         }
 
         private static IEnumerator<IWait> InvokeLaterImpl(IWait wait, Action action) {
