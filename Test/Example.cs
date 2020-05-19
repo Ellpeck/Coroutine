@@ -12,6 +12,8 @@ namespace Test {
             var seconds = CoroutineHandler.Start(WaitSeconds());
             CoroutineHandler.Start(PrintEvery10Seconds(seconds));
 
+            CoroutineHandler.Start(EmptyCoroutine());
+
             CoroutineHandler.InvokeLater(new WaitSeconds(10), () => {
                 Console.WriteLine("Raising test event");
                 CoroutineHandler.RaiseEvent(TestEvent);
@@ -51,6 +53,10 @@ namespace Test {
                     Environment.Exit(0);
                 }
             }
+        }
+
+        private static IEnumerator<IWait> EmptyCoroutine() {
+            yield break;
         }
 
     }

@@ -11,7 +11,6 @@ namespace Coroutine {
 
         internal ActiveCoroutine(IEnumerator<IWait> enumerator) {
             this.enumerator = enumerator;
-            this.enumerator.MoveNext();
         }
 
         public bool Cancel() {

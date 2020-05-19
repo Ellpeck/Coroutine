@@ -9,6 +9,8 @@ namespace Coroutine {
         private static readonly List<ActiveCoroutine> EventCoroutines = new List<ActiveCoroutine>();
 
         public static ActiveCoroutine Start(IEnumerator<IWait> coroutine) {
+            if (!coroutine.MoveNext())
+                return null;
             var inst = new ActiveCoroutine(coroutine);
             var type = inst.GetCurrentType();
             if (type == WaitType.Tick)
