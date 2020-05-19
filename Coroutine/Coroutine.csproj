@@ -10,6 +10,6 @@
         <PackageProjectUrl>https://github.com/Ellpeck/Coroutine</PackageProjectUrl>
         <RepositoryUrl>https://github.com/Ellpeck/Coroutine</RepositoryUrl>
         <PackageLicenseUrl>https://github.com/Ellpeck/Coroutine/blob/master/LICENSE.md</PackageLicenseUrl>
-        <VersionPrefix>1.0.3</VersionPrefix>
+        <VersionPrefix>1.0.4</VersionPrefix>
     </PropertyGroup>
 </Project>
