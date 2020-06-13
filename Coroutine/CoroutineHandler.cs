@@ -5,60 +5,30 @@ using System.Linq;
 namespace Coroutine {
     public static class CoroutineHandler {
 
-        private static readonly List<ActiveCoroutine> TickingCoroutines = new List<ActiveCoroutine>();
-        private static readonly List<ActiveCoroutine> EventCoroutines = new List<ActiveCoroutine>();
+        private static readonly CoroutineHandlerInstance Instance = new CoroutineHandlerInstance();
 
         public static ActiveCoroutine Start(IEnumerable<Wait> coroutine) {
-            return Start(coroutine.GetEnumerator());
+            return Instance.Start(coroutine);
         }
 
         public static ActiveCoroutine Start(IEnumerator<Wait> coroutine) {
-            var inst = new ActiveCoroutine(coroutine);
-            if (inst.MoveNext()) {
-                if (inst.IsWaitingForEvent()) {
-                    EventCoroutines.Add(inst);
-                } else {
-                    TickingCoroutines.Add(inst);
-                }
-            }
-            return inst;
+            return Instance.Start(coroutine);
         }
 
         public static void InvokeLater(Wait wait, Action action) {
-            Start(InvokeLaterImpl(wait, action));
+            Instance.InvokeLater(wait, action);
         }
 
         public static void Tick(double deltaSeconds) {
-            for (var i = TickingCoroutines.Count - 1; i >= 0; i--) {
-                var coroutine = TickingCoroutines[i];
-                if (coroutine.Tick(deltaSeconds)) {
-                    TickingCoroutines.RemoveAt(i);
-                } else if (coroutine.IsWaitingForEvent()) {
-                    TickingCoroutines.RemoveAt(i);
-                    EventCoroutines.Add(coroutine);
-                }
-            }
+            Instance.Tick(deltaSeconds);
         }
 
         public static void RaiseEvent(Event evt) {
-            for (var i = EventCoroutines.Count - 1; i >= 0; i--) {
-                var coroutine = EventCoroutines[i];
-                if (coroutine.OnEvent(evt)) {
-                    EventCoroutines.RemoveAt(i);
-                } else if (!coroutine.IsWaitingForEvent()) {
-                    EventCoroutines.RemoveAt(i);
-                    TickingCoroutines.Add(coroutine);
-                }
-            }
+            Instance.RaiseEvent(evt);
         }
 
         public static IEnumerable<ActiveCoroutine> GetActiveCoroutines() {
-            return TickingCoroutines.Concat(EventCoroutines);
-        }
-
-        private static IEnumerator<Wait> InvokeLaterImpl(Wait wait, Action action) {
-            yield return wait;
-            action();
+            return Instance.GetActiveCoroutines();
         }
 
     }
