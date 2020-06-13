@@ -14,11 +14,11 @@ namespace Test {
 
             CoroutineHandler.Start(EmptyCoroutine());
 
-            CoroutineHandler.InvokeLater(new WaitSeconds(10), () => {
+            CoroutineHandler.InvokeLater(new Wait(10), () => {
                 Console.WriteLine("Raising test event");
                 CoroutineHandler.RaiseEvent(TestEvent);
             });
-            CoroutineHandler.InvokeLater(new WaitEvent(TestEvent), () => Console.WriteLine("Test event received"));
+            CoroutineHandler.InvokeLater(new Wait(TestEvent), () => Console.WriteLine("Test event received"));
 
             var lastTime = DateTime.Now;
             while (true) {
@@ -29,24 +29,24 @@ namespace Test {
             }
         }
 
-        private static IEnumerator<IWait> WaitSeconds() {
+        private static IEnumerator<Wait> WaitSeconds() {
             Console.WriteLine("First thing " + DateTime.Now);
-            yield return new WaitSeconds(1);
+            yield return new Wait(1);
             Console.WriteLine("After 1 second " + DateTime.Now);
-            yield return new WaitSeconds(9);
+            yield return new Wait(9);
             Console.WriteLine("After 10 seconds " + DateTime.Now);
-            yield return new WaitSeconds(5);
+            yield return new Wait(5);
             Console.WriteLine("After 5 more seconds " + DateTime.Now);
-            yield return new WaitSeconds(10);
+            yield return new Wait(10);
             Console.WriteLine("After 10 more seconds " + DateTime.Now);
 
-            yield return new WaitSeconds(20);
+            yield return new Wait(20);
             Console.WriteLine("First coroutine done");
         }
 
-        private static IEnumerator<IWait> PrintEvery10Seconds(ActiveCoroutine first) {
+        private static IEnumerator<Wait> PrintEvery10Seconds(ActiveCoroutine first) {
             while (true) {
-                yield return new WaitSeconds(10);
+                yield return new Wait(10);
                 Console.WriteLine("The time is " + DateTime.Now);
                 if (first.IsFinished) {
                     Console.WriteLine("By the way, the first coroutine has finished!");
@@ -55,7 +55,7 @@ namespace Test {
             }
         }
 
-        private static IEnumerator<IWait> EmptyCoroutine() {
+        private static IEnumerator<Wait> EmptyCoroutine() {
             yield break;
         }
 
