@@ -31,11 +31,11 @@ To create a coroutine, simply create a method with the return type `IEnumerator<
 ```cs
 private static IEnumerator<Wait> WaitSeconds() {
     Console.WriteLine("First thing " + DateTime.Now);
-    yield return new WaitSeconds(1);
+    yield return new Wait(1);
     Console.WriteLine("After 1 second " + DateTime.Now);
-    yield return new WaitSeconds(5);
+    yield return new Wait(5);
     Console.WriteLine("After 5 seconds " + DateTime.Now);
-    yield return new WaitSeconds(10);
+    yield return new Wait(10);
     Console.WriteLine("After 10 seconds " + DateTime.Now);
 }
 ```
@@ -55,7 +55,7 @@ private static readonly Event TestEvent = new Event();
 Waiting for an event in a coroutine works as follows:
 ```cs
 private static IEnumerator<Wait> WaitForTestEvent() {
-    yield return new WaitEvent(TestEvent);
+    yield return new Wait(TestEvent);
     Console.WriteLine("Test event received");
 }
 ```
