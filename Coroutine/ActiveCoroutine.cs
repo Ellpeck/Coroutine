@@ -1,14 +1,16 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Coroutine {
     /// <summary>
     /// A reference to a currently running coroutine.
-    /// This is returned by <see cref="CoroutineHandler.Start(IEnumerator{Wait})"/>.
+    /// This is returned by <see cref="CoroutineHandler.Start(IEnumerator{Wait},string)"/>.
     /// </summary>
     public class ActiveCoroutine {
 
         private readonly IEnumerator<Wait> enumerator;
+        private readonly Stopwatch stopwatch;
         private Wait current;
 
         /// <summary>
@@ -21,13 +23,35 @@ namespace Coroutine {
         /// </summary>
         public bool WasCanceled { get; private set; }
         /// <summary>
+        /// The total amount of time that <see cref="MoveNext"/> took.
+        /// This is the amount of time that this active coroutine took for the entirety of its "steps", or yield statements.
+        /// </summary>
+        public TimeSpan TotalMoveNextTime { get; private set; }
+        /// <summary>
+        /// The total amount of times that <see cref="MoveNext"/> was invoked.
+        /// This is the amount of "steps" in your coroutine, or the amount of yield statements.
+        /// </summary>
+        public int MoveNextCount { get; private set; }
+        /// <summary>
+        /// The average amount of time that <see cref="MoveNext"/> took.
+        /// This is the average amount of time that each "step", or each yield statement, of this coroutine took to execute.
+        /// </summary>
+        public TimeSpan AverageMoveNextTime => new TimeSpan(this.TotalMoveNextTime.Ticks / this.MoveNextCount);
+        /// <summary>
         /// An event that gets fired when this active coroutine finishes or gets cancelled.
         /// When this event is called, <see cref="IsFinished"/> is always true.
         /// </summary>
         public event FinishCallback OnFinished;
+        /// <summary>
+        /// The name of this coroutine.
+        /// When not specified on startup of this coroutine, the name defaults to an empty string.
+        /// </summary>
+        public readonly string Name;
 
-        internal ActiveCoroutine(IEnumerator<Wait> enumerator) {
+        internal ActiveCoroutine(IEnumerator<Wait> enumerator, string name, Stopwatch stopwatch) {
             this.enumerator = enumerator;
+            this.stopwatch = stopwatch;
+            this.Name = name;
         }
 
         /// <summary>
@@ -60,7 +84,13 @@ namespace Coroutine {
         }
 
         internal bool MoveNext() {
-            if (!this.enumerator.MoveNext()) {
+            this.stopwatch.Restart();
+            var result = this.enumerator.MoveNext();
+            this.stopwatch.Stop();
+            this.TotalMoveNextTime += this.stopwatch.Elapsed;
+            this.MoveNextCount++;
+
+            if (!result) {
                 this.IsFinished = true;
                 this.OnFinished?.Invoke(this);
                 return false;

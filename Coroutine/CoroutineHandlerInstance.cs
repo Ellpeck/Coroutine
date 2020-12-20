@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Coroutine {
@@ -11,24 +12,36 @@ namespace Coroutine {
 
         private readonly List<ActiveCoroutine> tickingCoroutines = new List<ActiveCoroutine>();
         private readonly List<ActiveCoroutine> eventCoroutines = new List<ActiveCoroutine>();
+        private readonly Stopwatch stopwatch = new Stopwatch();
+
+        /// <summary>
+        /// The amount of <see cref="ActiveCoroutine"/> instances that are currently waiting for a tick (waiting for time to pass)
+        /// </summary>
+        public int TickingCount => this.tickingCoroutines.Count;
+        /// <summary>
+        /// The amount of <see cref="ActiveCoroutine"/> instances that are currently waiting for an <see cref="Event"/>
+        /// </summary>
+        public int EventCount => this.eventCoroutines.Count;
 
         /// <summary>
         /// Starts the given coroutine, returning a <see cref="ActiveCoroutine"/> object for management.
         /// Note that this calls <see cref="IEnumerable{T}.GetEnumerator"/> to get the enumerator.
         /// </summary>
         /// <param name="coroutine">The coroutine to start</param>
+        /// <param name="name">The name that this coroutine should have. Defaults to an empty string.</param>
         /// <returns>An active coroutine object representing this coroutine</returns>
-        public ActiveCoroutine Start(IEnumerable<Wait> coroutine) {
-            return this.Start(coroutine.GetEnumerator());
+        public ActiveCoroutine Start(IEnumerable<Wait> coroutine, string name = "") {
+            return this.Start(coroutine.GetEnumerator(), name);
         }
 
         /// <summary>
         /// Starts the given coroutine, returning a <see cref="ActiveCoroutine"/> object for management.
         /// </summary>
         /// <param name="coroutine">The coroutine to start</param>
+        /// <param name="name">The name that this coroutine should have. Defaults to an empty string.</param>
         /// <returns>An active coroutine object representing this coroutine</returns>
-        public ActiveCoroutine Start(IEnumerator<Wait> coroutine) {
-            var inst = new ActiveCoroutine(coroutine);
+        public ActiveCoroutine Start(IEnumerator<Wait> coroutine, string name = "") {
+            var inst = new ActiveCoroutine(coroutine, name, this.stopwatch);
             if (inst.MoveNext()) {
                 if (inst.IsWaitingForEvent()) {
                     this.eventCoroutines.Add(inst);
@@ -45,8 +58,9 @@ namespace Coroutine {
         /// </summary>
         /// <param name="wait">The wait to wait for</param>
         /// <param name="action">The action to execute after waiting</param>
-        public void InvokeLater(Wait wait, Action action) {
-            this.Start(InvokeLaterImpl(wait, action));
+        /// <returns>An active coroutine object representing this coroutine</returns>
+        public ActiveCoroutine InvokeLater(Wait wait, Action action) {
+            return this.Start(InvokeLaterImpl(wait, action));
         }
 
         /// <summary>

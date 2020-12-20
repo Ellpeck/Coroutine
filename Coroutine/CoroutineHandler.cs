@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Coroutine {
     /// <summary>
@@ -11,19 +10,24 @@ namespace Coroutine {
 
         private static readonly CoroutineHandlerInstance Instance = new CoroutineHandlerInstance();
 
-        /// <inheritdoc cref="CoroutineHandlerInstance.Start(IEnumerable{Wait})"/>
-        public static ActiveCoroutine Start(IEnumerable<Wait> coroutine) {
-            return Instance.Start(coroutine);
+        /// <inheritdoc cref="CoroutineHandlerInstance.TickingCount"/>
+        public static int TickingCount => Instance.TickingCount;
+        /// <inheritdoc cref="CoroutineHandlerInstance.EventCount"/>
+        public static int EventCount => Instance.EventCount;
+
+        /// <inheritdoc cref="CoroutineHandlerInstance.Start(IEnumerable{Wait},string)"/>
+        public static ActiveCoroutine Start(IEnumerable<Wait> coroutine, string name = "") {
+            return Instance.Start(coroutine, name);
         }
 
-        /// <inheritdoc cref="CoroutineHandlerInstance.Start(IEnumerator{Wait})"/>
-        public static ActiveCoroutine Start(IEnumerator<Wait> coroutine) {
-            return Instance.Start(coroutine);
+        /// <inheritdoc cref="CoroutineHandlerInstance.Start(IEnumerator{Wait},string)"/>
+        public static ActiveCoroutine Start(IEnumerator<Wait> coroutine, string name = "") {
+            return Instance.Start(coroutine, name);
         }
 
         /// <inheritdoc cref="CoroutineHandlerInstance.InvokeLater"/>
-        public static void InvokeLater(Wait wait, Action action) {
-            Instance.InvokeLater(wait, action);
+        public static ActiveCoroutine InvokeLater(Wait wait, Action action) {
+            return Instance.InvokeLater(wait, action);
         }
 
         /// <inheritdoc cref="CoroutineHandlerInstance.Tick"/>

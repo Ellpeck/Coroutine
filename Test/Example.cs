@@ -9,7 +9,7 @@ namespace Test {
         private static readonly Event TestEvent = new Event();
 
         public static void Main() {
-            var seconds = CoroutineHandler.Start(WaitSeconds());
+            var seconds = CoroutineHandler.Start(WaitSeconds(), "Awesome Waiting Coroutine");
             CoroutineHandler.Start(PrintEvery10Seconds(seconds));
 
             CoroutineHandler.Start(EmptyCoroutine());
@@ -50,6 +50,7 @@ namespace Test {
                 Console.WriteLine("The time is " + DateTime.Now);
                 if (first.IsFinished) {
                     Console.WriteLine("By the way, the first coroutine has finished!");
+                    Console.WriteLine($"{first.Name} data: {first.MoveNextCount} moves, {first.TotalMoveNextTime} total time, {first.AverageMoveNextTime} average");
                     Environment.Exit(0);
                 }
             }
