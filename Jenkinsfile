@@ -15,9 +15,11 @@ pipeline {
     }
 
     stage('Publish') {
+      when {
+        branch 'master'
+      }
       steps {
-        sh '''dotnet nuget push -s http://localhost:5000/v3/index.json **/*.nupkg -k $BAGET -n true
-'''
+        sh 'dotnet nuget push -s http://localhost:5000/v3/index.json **/*.nupkg -k $BAGET -n true'
       }
     }
 
