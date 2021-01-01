@@ -50,7 +50,10 @@ namespace Test {
                 Console.WriteLine("The time is " + DateTime.Now);
                 if (first.IsFinished) {
                     Console.WriteLine("By the way, the first coroutine has finished!");
-                    Console.WriteLine($"{first.Name} data: {first.MoveNextCount} moves, {first.TotalMoveNextTime} total time, {first.AverageMoveNextTime} average");
+                    Console.WriteLine($"{first.Name} data: {first.MoveNextCount} moves, " +
+                        $"{first.TotalMoveNextTime.TotalMilliseconds} total time, " +
+                        $"{first.AverageMoveNextTime.TotalMilliseconds} average, " +
+                        $"{first.MaxMoveNextTime.TotalMilliseconds} maximum");
                     Environment.Exit(0);
                 }
             }
