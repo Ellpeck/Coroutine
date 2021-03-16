@@ -38,6 +38,7 @@ namespace Test {
             Console.WriteLine("After 1 second " + DateTime.Now);
             yield return new Wait(9);
             Console.WriteLine("After 10 seconds " + DateTime.Now);
+            CoroutineHandler.Start(NestedCoroutine());
             yield return new Wait(5);
             Console.WriteLine("After 5 more seconds " + DateTime.Now);
             yield return new Wait(10);
@@ -64,6 +65,12 @@ namespace Test {
 
         private static IEnumerator<Wait> EmptyCoroutine() {
             yield break;
+        }
+
+        private static IEnumerable<Wait> NestedCoroutine() {
+            Console.WriteLine("I'm a coroutine that was started from another coroutine!");
+            yield return new Wait(5);
+            Console.WriteLine("It's been 5 seconds since a nested coroutine was started, yay!");
         }
 
     }

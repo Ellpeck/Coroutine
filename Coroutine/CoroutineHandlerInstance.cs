@@ -67,15 +67,15 @@ namespace Coroutine {
         /// </summary>
         /// <param name="deltaSeconds">The amount of seconds that have passed since the last time this method was invoked</param>
         public void Tick(double deltaSeconds) {
-            this.tickingCoroutines.RemoveAll(c => {
-                if (c.Tick(deltaSeconds)) {
-                    return true;
-                } else if (c.IsWaitingForEvent()) {
-                    AddSorted(this.eventCoroutines, c);
-                    return true;
+            for (var i = this.tickingCoroutines.Count - 1; i >= 0; i--) {
+                var coroutine = this.tickingCoroutines[i];
+                if (coroutine.Tick(deltaSeconds)) {
+                    this.tickingCoroutines.RemoveAt(i);
+                } else if (coroutine.IsWaitingForEvent()) {
+                    this.tickingCoroutines.RemoveAt(i);
+                    this.eventCoroutines.Add(coroutine);
                 }
-                return false;
-            });
+            }
         }
 
         /// <summary>
@@ -83,15 +83,15 @@ namespace Coroutine {
         /// </summary>
         /// <param name="evt">The event to raise</param>
         public void RaiseEvent(Event evt) {
-            this.eventCoroutines.RemoveAll(c => {
-                if (c.OnEvent(evt)) {
-                    return true;
-                } else if (!c.IsWaitingForEvent()) {
-                    AddSorted(this.tickingCoroutines, c);
-                    return true;
+            for (var i = this.eventCoroutines.Count - 1; i >= 0; i--) {
+                var coroutine = this.eventCoroutines[i];
+                if (coroutine.OnEvent(evt)) {
+                    this.eventCoroutines.RemoveAt(i);
+                } else if (!coroutine.IsWaitingForEvent()) {
+                    this.eventCoroutines.RemoveAt(i);
+                    this.tickingCoroutines.Add(coroutine);
                 }
-                return false;
-            });
+            }
         }
 
         /// <summary>

@@ -124,7 +124,7 @@ namespace Coroutine {
 
         /// <inheritdoc />
         public int CompareTo(ActiveCoroutine other) {
-            return other.Priority.CompareTo(this.Priority);
+            return this.Priority.CompareTo(other.Priority);
         }
 
     }
