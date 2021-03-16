@@ -5,7 +5,7 @@ using System.Diagnostics;
 namespace Coroutine {
     /// <summary>
     /// A reference to a currently running coroutine.
-    /// This is returned by <see cref="CoroutineHandler.Start(IEnumerator{Wait},string)"/>.
+    /// This is returned by <see cref="CoroutineHandler.Start(IEnumerator{Wait},string,int)"/>.
     /// </summary>
     public class ActiveCoroutine : IComparable<ActiveCoroutine> {
 
@@ -99,9 +99,8 @@ namespace Coroutine {
             var result = this.enumerator.MoveNext();
             this.stopwatch.Stop();
             this.TotalMoveNextTime += this.stopwatch.Elapsed;
-            if (this.stopwatch.Elapsed > this.MaxMoveNextTime) {
+            if (this.stopwatch.Elapsed > this.MaxMoveNextTime)
                 this.MaxMoveNextTime = this.stopwatch.Elapsed;
-            }
             this.MoveNextCount++;
 
             if (!result) {
