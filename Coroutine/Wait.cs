@@ -41,7 +41,7 @@ namespace Coroutine {
         }
 
         internal bool OnEvent(Event evt) {
-            return evt == this.evt;
+            return Equals(evt, this.evt);
         }
 
         internal bool IsWaitingForEvent() {
