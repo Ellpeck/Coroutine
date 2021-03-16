@@ -7,7 +7,7 @@ namespace Coroutine {
     /// A reference to a currently running coroutine.
     /// This is returned by <see cref="CoroutineHandler.Start(IEnumerator{Wait},string)"/>.
     /// </summary>
-    public class ActiveCoroutine {
+    public class ActiveCoroutine : IComparable<ActiveCoroutine> {
 
         private readonly IEnumerator<Wait> enumerator;
         private readonly Stopwatch stopwatch;
@@ -52,11 +52,17 @@ namespace Coroutine {
         /// When not specified on startup of this coroutine, the name defaults to an empty string.
         /// </summary>
         public readonly string Name;
+        /// <summary>
+        /// The priority of this coroutine. The higher the priority, the earlier it is advanced compared to other coroutines that advance around the same time.
+        /// When not specified at startup of this coroutine, the priority defaults to 0.
+        /// </summary>
+        public readonly int Priority;
 
-        internal ActiveCoroutine(IEnumerator<Wait> enumerator, string name, Stopwatch stopwatch) {
+        internal ActiveCoroutine(IEnumerator<Wait> enumerator, string name, int priority, Stopwatch stopwatch) {
             this.enumerator = enumerator;
-            this.stopwatch = stopwatch;
             this.Name = name;
+            this.Priority = priority;
+            this.stopwatch = stopwatch;
         }
 
         /// <summary>
@@ -93,8 +99,7 @@ namespace Coroutine {
             var result = this.enumerator.MoveNext();
             this.stopwatch.Stop();
             this.TotalMoveNextTime += this.stopwatch.Elapsed;
-            if (this.stopwatch.Elapsed > this.MaxMoveNextTime)
-            {
+            if (this.stopwatch.Elapsed > this.MaxMoveNextTime) {
                 this.MaxMoveNextTime = this.stopwatch.Elapsed;
             }
             this.MoveNextCount++;
@@ -117,6 +122,11 @@ namespace Coroutine {
         /// </summary>
         /// <param name="coroutine">The coroutine that finished</param>
         public delegate void FinishCallback(ActiveCoroutine coroutine);
+
+        /// <inheritdoc />
+        public int CompareTo(ActiveCoroutine other) {
+            return other.Priority.CompareTo(this.Priority);
+        }
 
     }
 }

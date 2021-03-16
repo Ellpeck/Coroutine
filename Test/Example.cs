@@ -20,6 +20,9 @@ namespace Test {
             });
             CoroutineHandler.InvokeLater(new Wait(TestEvent), () => Console.WriteLine("Test event received"));
 
+            CoroutineHandler.InvokeLater(new Wait(TestEvent), () => Console.WriteLine("I am invoked after 'Test event received'"), priority: -5);
+            CoroutineHandler.InvokeLater(new Wait(TestEvent), () => Console.WriteLine("I am invoked before 'Test event received'"), priority: 2);
+
             var lastTime = DateTime.Now;
             while (true) {
                 var currTime = DateTime.Now;
@@ -51,9 +54,9 @@ namespace Test {
                 if (first.IsFinished) {
                     Console.WriteLine("By the way, the first coroutine has finished!");
                     Console.WriteLine($"{first.Name} data: {first.MoveNextCount} moves, " +
-                        $"{first.TotalMoveNextTime.TotalMilliseconds} total time, " +
-                        $"{first.AverageMoveNextTime.TotalMilliseconds} average, " +
-                        $"{first.MaxMoveNextTime.TotalMilliseconds} maximum");
+                                      $"{first.TotalMoveNextTime.TotalMilliseconds} total time, " +
+                                      $"{first.AverageMoveNextTime.TotalMilliseconds} average, " +
+                                      $"{first.MaxMoveNextTime.TotalMilliseconds} maximum");
                     Environment.Exit(0);
                 }
             }

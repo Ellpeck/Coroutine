@@ -15,19 +15,19 @@ namespace Coroutine {
         /// <inheritdoc cref="CoroutineHandlerInstance.EventCount"/>
         public static int EventCount => Instance.EventCount;
 
-        /// <inheritdoc cref="CoroutineHandlerInstance.Start(IEnumerable{Wait},string)"/>
-        public static ActiveCoroutine Start(IEnumerable<Wait> coroutine, string name = "") {
-            return Instance.Start(coroutine, name);
+        /// <inheritdoc cref="CoroutineHandlerInstance.Start(IEnumerable{Wait},string,int)"/>
+        public static ActiveCoroutine Start(IEnumerable<Wait> coroutine, string name = "", int priority = 0) {
+            return Instance.Start(coroutine, name, priority);
         }
 
-        /// <inheritdoc cref="CoroutineHandlerInstance.Start(IEnumerator{Wait},string)"/>
-        public static ActiveCoroutine Start(IEnumerator<Wait> coroutine, string name = "") {
-            return Instance.Start(coroutine, name);
+        /// <inheritdoc cref="CoroutineHandlerInstance.Start(IEnumerator{Wait},string,int)"/>
+        public static ActiveCoroutine Start(IEnumerator<Wait> coroutine, string name = "", int priority = 0) {
+            return Instance.Start(coroutine, name, priority);
         }
 
         /// <inheritdoc cref="CoroutineHandlerInstance.InvokeLater"/>
-        public static ActiveCoroutine InvokeLater(Wait wait, Action action) {
-            return Instance.InvokeLater(wait, action);
+        public static ActiveCoroutine InvokeLater(Wait wait, Action action, string name = "", int priority = 0) {
+            return Instance.InvokeLater(wait, action, name, priority);
         }
 
         /// <inheritdoc cref="CoroutineHandlerInstance.Tick"/>

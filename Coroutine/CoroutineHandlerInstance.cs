@@ -28,27 +28,24 @@ namespace Coroutine {
         /// Note that this calls <see cref="IEnumerable{T}.GetEnumerator"/> to get the enumerator.
         /// </summary>
         /// <param name="coroutine">The coroutine to start</param>
-        /// <param name="name">The name that this coroutine should have. Defaults to an empty string.</param>
+        /// <param name="name">The <see cref="ActiveCoroutine.Name"/> that this coroutine should have. Defaults to an empty string.</param>
+        /// <param name="priority">The <see cref="ActiveCoroutine.Priority"/> that this coroutine should have. The higher the priority, the earlier it is advanced. Defaults to 0.</param>
         /// <returns>An active coroutine object representing this coroutine</returns>
-        public ActiveCoroutine Start(IEnumerable<Wait> coroutine, string name = "") {
-            return this.Start(coroutine.GetEnumerator(), name);
+        public ActiveCoroutine Start(IEnumerable<Wait> coroutine, string name = "", int priority = 0) {
+            return this.Start(coroutine.GetEnumerator(), name, priority);
         }
 
         /// <summary>
         /// Starts the given coroutine, returning a <see cref="ActiveCoroutine"/> object for management.
         /// </summary>
         /// <param name="coroutine">The coroutine to start</param>
-        /// <param name="name">The name that this coroutine should have. Defaults to an empty string.</param>
+        /// <param name="name">The <see cref="ActiveCoroutine.Name"/> that this coroutine should have. Defaults to an empty string.</param>
+        /// <param name="priority">The <see cref="ActiveCoroutine.Priority"/> that this coroutine should have. The higher the priority, the earlier it is advanced compared to other coroutines that advance around the same time. Defaults to 0.</param>
         /// <returns>An active coroutine object representing this coroutine</returns>
-        public ActiveCoroutine Start(IEnumerator<Wait> coroutine, string name = "") {
-            var inst = new ActiveCoroutine(coroutine, name, this.stopwatch);
-            if (inst.MoveNext()) {
-                if (inst.IsWaitingForEvent()) {
-                    this.eventCoroutines.Add(inst);
-                } else {
-                    this.tickingCoroutines.Add(inst);
-                }
-            }
+        public ActiveCoroutine Start(IEnumerator<Wait> coroutine, string name = "", int priority = 0) {
+            var inst = new ActiveCoroutine(coroutine, name, priority, this.stopwatch);
+            if (inst.MoveNext())
+                AddSorted(inst.IsWaitingForEvent() ? this.eventCoroutines : this.tickingCoroutines, inst);
             return inst;
         }
 
@@ -58,9 +55,11 @@ namespace Coroutine {
         /// </summary>
         /// <param name="wait">The wait to wait for</param>
         /// <param name="action">The action to execute after waiting</param>
+        /// <param name="name">The <see cref="ActiveCoroutine.Name"/> that the underlying coroutine should have. Defaults to an empty string.</param>
+        /// <param name="priority">The <see cref="ActiveCoroutine.Priority"/> that the underlying coroutine should have. The higher the priority, the earlier it is advanced compared to other coroutines that advance around the same time. Defaults to 0.</param>
         /// <returns>An active coroutine object representing this coroutine</returns>
-        public ActiveCoroutine InvokeLater(Wait wait, Action action) {
-            return this.Start(InvokeLaterImpl(wait, action));
+        public ActiveCoroutine InvokeLater(Wait wait, Action action, string name = "", int priority = 0) {
+            return this.Start(InvokeLaterImpl(wait, action), name, priority);
         }
 
         /// <summary>
@@ -68,15 +67,15 @@ namespace Coroutine {
         /// </summary>
         /// <param name="deltaSeconds">The amount of seconds that have passed since the last time this method was invoked</param>
         public void Tick(double deltaSeconds) {
-            for (var i = this.tickingCoroutines.Count - 1; i >= 0; i--) {
-                var coroutine = this.tickingCoroutines[i];
-                if (coroutine.Tick(deltaSeconds)) {
-                    this.tickingCoroutines.RemoveAt(i);
-                } else if (coroutine.IsWaitingForEvent()) {
-                    this.tickingCoroutines.RemoveAt(i);
-                    this.eventCoroutines.Add(coroutine);
+            this.tickingCoroutines.RemoveAll(c => {
+                if (c.Tick(deltaSeconds)) {
+                    return true;
+                } else if (c.IsWaitingForEvent()) {
+                    AddSorted(this.eventCoroutines, c);
+                    return true;
                 }
-            }
+                return false;
+            });
         }
 
         /// <summary>
@@ -84,15 +83,15 @@ namespace Coroutine {
         /// </summary>
         /// <param name="evt">The event to raise</param>
         public void RaiseEvent(Event evt) {
-            for (var i = this.eventCoroutines.Count - 1; i >= 0; i--) {
-                var coroutine = this.eventCoroutines[i];
-                if (coroutine.OnEvent(evt)) {
-                    this.eventCoroutines.RemoveAt(i);
-                } else if (!coroutine.IsWaitingForEvent()) {
-                    this.eventCoroutines.RemoveAt(i);
-                    this.tickingCoroutines.Add(coroutine);
+            this.eventCoroutines.RemoveAll(c => {
+                if (c.OnEvent(evt)) {
+                    return true;
+                } else if (!c.IsWaitingForEvent()) {
+                    AddSorted(this.tickingCoroutines, c);
+                    return true;
                 }
-            }
+                return false;
+            });
         }
 
         /// <summary>
@@ -106,6 +105,11 @@ namespace Coroutine {
         private static IEnumerator<Wait> InvokeLaterImpl(Wait wait, Action action) {
             yield return wait;
             action();
+        }
+
+        private static void AddSorted(List<ActiveCoroutine> list, ActiveCoroutine coroutine) {
+            var position = list.BinarySearch(coroutine);
+            list.Insert(position < 0 ? ~position : position, coroutine);
         }
 
     }
