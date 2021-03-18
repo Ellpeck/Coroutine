@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Coroutine;
 
-namespace Test {
+namespace Example {
     internal static class Example {
 
         private static readonly Event TestEvent = new Event();
@@ -18,10 +18,10 @@ namespace Test {
                 Console.WriteLine("Raising test event");
                 CoroutineHandler.RaiseEvent(TestEvent);
             });
-            CoroutineHandler.InvokeLater(new Wait(TestEvent), () => Console.WriteLine("Test event received"));
+            CoroutineHandler.InvokeLater(new Wait(TestEvent), () => Console.WriteLine("Example event received"));
 
-            CoroutineHandler.InvokeLater(new Wait(TestEvent), () => Console.WriteLine("I am invoked after 'Test event received'"), priority: -5);
-            CoroutineHandler.InvokeLater(new Wait(TestEvent), () => Console.WriteLine("I am invoked before 'Test event received'"), priority: 2);
+            CoroutineHandler.InvokeLater(new Wait(TestEvent), () => Console.WriteLine("I am invoked after 'Example event received'"), priority: -5);
+            CoroutineHandler.InvokeLater(new Wait(TestEvent), () => Console.WriteLine("I am invoked before 'Example event received'"), priority: 2);
 
             var lastTime = DateTime.Now;
             while (true) {

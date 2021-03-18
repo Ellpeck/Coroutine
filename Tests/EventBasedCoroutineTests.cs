@@ -1,19 +1,16 @@
-﻿using Coroutine;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Coroutine;
+using NUnit.Framework;
 
-namespace CoroutineTests
-{
-    [TestClass]
-    public class EventBasedCoroutineTests
-    {
-        [TestMethod]
-        public void TestEventBasedCoroutine()
-        {
-            int counter = 0;
+namespace Tests {
+    public class EventBasedCoroutineTests {
+
+        [Test]
+        public void TestEventBasedCoroutine() {
+            var counter = 0;
             var myEvent = new Event();
-            IEnumerator<Wait> OnEventTriggered()
-            {
+
+            IEnumerator<Wait> OnEventTriggered() {
                 counter++;
                 yield return new Wait(myEvent);
                 counter++;
@@ -30,5 +27,6 @@ namespace CoroutineTests
             Assert.AreEqual(false, cr.WasCanceled, "Incorrect IsCanceled value.");
             Assert.AreEqual(cr.MoveNextCount, 2, "Incorrect MoveNextCount value.");
         }
+
     }
 }

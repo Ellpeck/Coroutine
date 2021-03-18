@@ -5,7 +5,7 @@ using System.Diagnostics;
 namespace Coroutine {
     /// <summary>
     /// A reference to a currently running coroutine.
-    /// This is returned by <see cref="CoroutineHandler.Start(IEnumerator{Wait},string,int)"/>.
+    /// This is returned by <see cref="CoroutineHandler.Start(System.Collections.Generic.IEnumerator{Coroutine.Wait},string,int)"/>.
     /// </summary>
     public class ActiveCoroutine : IComparable<ActiveCoroutine> {
 

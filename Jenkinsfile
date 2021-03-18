@@ -1,16 +1,18 @@
 pipeline {
   agent any
   stages {
-    stage('Build') {
+    stage('Test') {
       steps {
-        sh 'dotnet build **/Coroutine.csproj'
+        sh 'dotnet test --collect:"XPlat Code Coverage"'
+        nunit testResultsPattern: '**/TestResults.xml'
+        cobertura coberturaReportFile: '**/coverage.cobertura.xml'
       }
     }
 
     stage('Pack') {
       steps {
         sh 'find . -type f -name \\\'*.nupkg\\\' -delete'
-        sh 'dotnet pack **/Coroutine.csproj --version-suffix ${BUILD_NUMBER}'
+        sh 'dotnet pack --version-suffix ${BUILD_NUMBER}'
       }
     }
 
