@@ -1,11 +1,11 @@
+using System.Collections.Generic;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Coroutine;
+
 
 namespace CoroutineTests
 {
-    using Coroutine;
-    using System.Collections.Generic;
-    using System.Threading;
-
     [TestClass]
     public class TimeBasedCoroutineTests
     {
