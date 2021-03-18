@@ -10,7 +10,7 @@ namespace CoroutineTests
     public class TimeBasedCoroutineTests
     {
         [TestMethod]
-        public void TestTimerBasedCorotuine()
+        public void TestTimerBasedCoroutine()
         {
             int counter = 0;
             IEnumerator<Wait> OnTimeTickCodeExecuted()
@@ -33,7 +33,7 @@ namespace CoroutineTests
         }
 
         [TestMethod]
-        public void TestCorotuineReturningWeirdYields()
+        public void TestCoroutineReturningWeirdYields()
         {
             int counter = 0;
             IEnumerator<Wait> OnTimeTickNeverReturnYield()
@@ -70,7 +70,7 @@ namespace CoroutineTests
         }
 
         [TestMethod]
-        public void TestCorotuineReturningDefaultYield()
+        public void TestCoroutineReturningDefaultYield()
         {
             int counter = 0;
             IEnumerator<Wait> OnTimeTickYieldDefault()
@@ -91,7 +91,7 @@ namespace CoroutineTests
         }
 
         [TestMethod]
-        public void TestInfiniteCorotuineNeverFinishesUnlessCanceled()
+        public void TestInfiniteCoroutineNeverFinishesUnlessCanceled()
         {
             int counter = 0;
             IEnumerator<Wait> OnTimerTickInfinite()
@@ -147,7 +147,7 @@ namespace CoroutineTests
         }
 
         [TestMethod]
-        public void TestNestedCorotuine()
+        public void TestNestedCoroutine()
         {
             int counterAlwaysRunning = 0;
             IEnumerator<Wait> AlwaysRunning()
@@ -276,7 +276,7 @@ namespace CoroutineTests
         }
 
         [TestMethod]
-        public void TestTimeBasedCorotuineIsAccurate()
+        public void TestTimeBasedCoroutineIsAccurate()
         {
             int counter0 = 0;
             IEnumerator<Wait> IncrementCounter0Ever10Seconds()
@@ -335,16 +335,16 @@ namespace CoroutineTests
         }
 
         [TestMethod]
-        public void CorotuineStatsAre95PercentAccurate()
+        public void CoroutineStatsAre95PercentAccurate()
         {
-            IEnumerator<Wait> CorotuineTakesMax500MS()
+            IEnumerator<Wait> CoroutineTakesMax500MS()
             {
                 Thread.Sleep(200);
                 yield return new Wait(10);
                 Thread.Sleep(500);
             }
 
-            var cr = CoroutineHandler.Start(CorotuineTakesMax500MS());
+            var cr = CoroutineHandler.Start(CoroutineTakesMax500MS());
             for (int i = 0; i < 5; i++)
                 this.SimulateTime(50);
 
