@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Coroutine", "Coroutine\Coro
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", "{8BE6B559-927D-47A6-8253-D7D809D337AF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoroutineTests", "CoroutineTests\CoroutineTests.csproj", "{8E110BC2-38FD-404A-B5BD-02C771B0D1D5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{8BE6B559-927D-47A6-8253-D7D809D337AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8BE6B559-927D-47A6-8253-D7D809D337AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8BE6B559-927D-47A6-8253-D7D809D337AF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8E110BC2-38FD-404A-B5BD-02C771B0D1D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E110BC2-38FD-404A-B5BD-02C771B0D1D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E110BC2-38FD-404A-B5BD-02C771B0D1D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E110BC2-38FD-404A-B5BD-02C771B0D1D5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
