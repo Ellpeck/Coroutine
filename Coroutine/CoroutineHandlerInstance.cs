@@ -13,6 +13,7 @@ namespace Coroutine {
         private readonly List<ActiveCoroutine> tickingCoroutines = new List<ActiveCoroutine>();
         private readonly List<ActiveCoroutine> eventCoroutines = new List<ActiveCoroutine>();
         private readonly Queue<ActiveCoroutine> outstandingCoroutines = new Queue<ActiveCoroutine>();
+        private readonly Dictionary<int, byte> deletedCoroutinesIndexes = new Dictionary<int, byte>();
         private readonly Stopwatch stopwatch = new Stopwatch();
 
         /// <summary>
@@ -68,6 +69,7 @@ namespace Coroutine {
         /// </summary>
         /// <param name="deltaSeconds">The amount of seconds that have passed since the last time this method was invoked</param>
         public void Tick(double deltaSeconds) {
+            this.RemoveDeletedCoroutines();
             this.AddOutstandingCoroutines();
             this.tickingCoroutines.RemoveAll(c => {
                 if (c.Tick(deltaSeconds)) {
@@ -85,16 +87,15 @@ namespace Coroutine {
         /// </summary>
         /// <param name="evt">The event to raise</param>
         public void RaiseEvent(Event evt) {
-            this.AddOutstandingCoroutines();
-            this.eventCoroutines.RemoveAll(c => {
-                if (c.OnEvent(evt)) {
-                    return true;
-                } else if (!c.IsWaitingForEvent()) {
-                    this.outstandingCoroutines.Enqueue(c);
-                    return true;
+            for (int i = 0; i < this.eventCoroutines.Count; i++) {
+                var eventCoroutine = this.eventCoroutines[i];
+                if (eventCoroutine.OnEvent(evt)) {
+                    this.deletedCoroutinesIndexes[i] = 1;
+                } else if (!eventCoroutine.IsWaitingForEvent()) {
+                    this.outstandingCoroutines.Enqueue(eventCoroutine);
+                    this.deletedCoroutinesIndexes[i] = 1;
                 }
-                return false;
-            });
+            }
         }
 
         /// <summary>
@@ -112,6 +113,15 @@ namespace Coroutine {
                 var position = list.BinarySearch(coroutine);
                 list.Insert(position < 0 ? ~position : position, coroutine);
             }
+        }
+
+        private void RemoveDeletedCoroutines() {
+            int counter = 0;
+            this.eventCoroutines.RemoveAll(c => {
+                return this.deletedCoroutinesIndexes.ContainsKey(counter++);
+            });
+
+            this.deletedCoroutinesIndexes.Clear();
         }
 
         private static IEnumerator<Wait> InvokeLaterImpl(Wait wait, Action action) {
