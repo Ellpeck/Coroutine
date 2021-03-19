@@ -88,6 +88,8 @@ namespace Tests {
 
         [Test]
         public void TestNestedCoroutine() {
+            var onChildCreated = new Event();
+            var onParentCreated = new Event();
             var myEvent = new Event();
             var counterAlwaysRunning = 0;
 
@@ -120,8 +122,12 @@ namespace Tests {
                 counterGrandParent++;
                 // Nested corotuine starting.
                 var p = CoroutineHandler.Start(Parent());
+                CoroutineHandler.RaiseEvent(onParentCreated);
                 // Nested corotuine starting in OnFinished.
-                p.OnFinished += ac => CoroutineHandler.Start(Child());
+                p.OnFinished += ac => {
+                    CoroutineHandler.Start(Child());
+                    CoroutineHandler.RaiseEvent(onChildCreated);
+                };
             }
 
             CoroutineHandler.Start(AlwaysRunning());
