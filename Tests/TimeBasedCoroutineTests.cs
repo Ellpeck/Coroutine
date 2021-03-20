@@ -328,5 +328,128 @@ namespace Tests {
             Assert.IsTrue(gTc && lTd, $"Maximum Move Next Time {cr.MaxMoveNextTime.Milliseconds} is invalid.");
         }
 
+        [Test]
+        public void TestTickWithNestedAddAndRaiseEvent()
+        {
+            var coroutineCreated = new Event();
+            var counterCoroutineA = 0;
+            var counter = 0;
+
+            CoroutineHandler.Start(OnCoroutineCreatedInfinite());
+            CoroutineHandler.Start(OnEvent1());
+            CoroutineHandler.Tick(1);
+            CoroutineHandler.Tick(1);
+            CoroutineHandler.Tick(1);
+            Assert.AreEqual(3, counter);
+            Assert.AreEqual(2, counterCoroutineA);
+
+            IEnumerator<Wait> OnCoroutineCreatedInfinite()
+            {
+                while (true)
+                {
+                    yield return new Wait(coroutineCreated);
+                    counterCoroutineA++;
+                }
+            }
+
+            IEnumerator<Wait> OnEvent1()
+            {
+                yield return new Wait(1);
+                counter++;
+                CoroutineHandler.Start(OnEvent2());
+                CoroutineHandler.RaiseEvent(coroutineCreated);
+            }
+
+            IEnumerator<Wait> OnEvent2()
+            {
+                yield return new Wait(1);
+                counter++;
+                CoroutineHandler.Start(OnEvent3());
+                CoroutineHandler.RaiseEvent(coroutineCreated);
+            }
+
+            IEnumerator<Wait> OnEvent3()
+            {
+                yield return new Wait(1);
+                counter++;
+            }
+        }
+
+        [Test]
+        public void TestTickWithNestedAddAndRaiseEventOnFinish()
+        {
+            var onChildCreated = new Event();
+            var onParentCreated = new Event();
+            var counterAlwaysRunning = 0;
+
+            IEnumerator<Wait> AlwaysRunning()
+            {
+                while (true)
+                {
+                    yield return new Wait(1);
+                    counterAlwaysRunning++;
+                }
+            }
+
+            var counterChild = 0;
+
+            IEnumerator<Wait> Child()
+            {
+                yield return new Wait(1);
+                counterChild++;
+            }
+
+            var counterParent = 0;
+
+            IEnumerator<Wait> Parent()
+            {
+                yield return new Wait(1);
+                counterParent++;
+                // OnFinish I will start child.
+            }
+
+            var counterGrandParent = 0;
+
+            IEnumerator<Wait> GrandParent()
+            {
+                yield return new Wait(1);
+                counterGrandParent++;
+                // Nested corotuine starting.
+                var p = CoroutineHandler.Start(Parent());
+                CoroutineHandler.RaiseEvent(onParentCreated);
+                // Nested corotuine starting in OnFinished.
+                p.OnFinished += ac => {
+                    CoroutineHandler.Start(Child());
+                    CoroutineHandler.RaiseEvent(onChildCreated);
+                };
+            }
+
+            CoroutineHandler.Start(AlwaysRunning());
+            CoroutineHandler.Start(GrandParent());
+            Assert.AreEqual(0, counterAlwaysRunning, "Always running counter is invalid at event 0.");
+            Assert.AreEqual(0, counterGrandParent, "Grand Parent counter is invalid at event 0.");
+            Assert.AreEqual(0, counterParent, "Parent counter is invalid at event 0.");
+            Assert.AreEqual(0, counterChild, "Child counter is invalid at event 0.");
+            CoroutineHandler.Tick(1);
+            Assert.AreEqual(1, counterAlwaysRunning, "Always running counter is invalid at event 1.");
+            Assert.AreEqual(1, counterGrandParent, "Grand Parent counter is invalid at event 1.");
+            Assert.AreEqual(0, counterParent, "Parent counter is invalid at event 1.");
+            Assert.AreEqual(0, counterChild, "Child counter is invalid at event 1.");
+            CoroutineHandler.Tick(1);
+            Assert.AreEqual(2, counterAlwaysRunning, "Always running counter is invalid at event 2.");
+            Assert.AreEqual(1, counterGrandParent, "Grand Parent counter is invalid at event 2.");
+            Assert.AreEqual(1, counterParent, "Parent counter is invalid at event 2.");
+            Assert.AreEqual(0, counterChild, "Child counter is invalid at event 2.");
+            CoroutineHandler.Tick(1);
+            Assert.AreEqual(3, counterAlwaysRunning, "Always running counter is invalid at event 3.");
+            Assert.AreEqual(1, counterGrandParent, "Grand Parent counter is invalid at event 3.");
+            Assert.AreEqual(1, counterParent, "Parent counter is invalid at event 3.");
+            Assert.AreEqual(1, counterChild, "Child counter is invalid at event 3.");
+            CoroutineHandler.Tick(1);
+            Assert.AreEqual(4, counterAlwaysRunning, "Always running counter is invalid at event 4.");
+            Assert.AreEqual(1, counterGrandParent, "Grand Parent counter is invalid at event 4.");
+            Assert.AreEqual(1, counterParent, "Parent counter is invalid at event 4.");
+            Assert.AreEqual(1, counterChild, "Child counter is invalid at event 4.");
+        }
     }
 }
