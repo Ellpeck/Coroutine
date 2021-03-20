@@ -134,7 +134,7 @@ namespace Tests {
                 };
             }
 
-            CoroutineHandler.Start(AlwaysRunning());
+            var always = CoroutineHandler.Start(AlwaysRunning());
             CoroutineHandler.Start(GrandParent());
             Assert.AreEqual(0, counterAlwaysRunning, "Always running counter is invalid at event 0.");
             Assert.AreEqual(0, counterGrandParent, "Grand Parent counter is invalid at event 0.");
@@ -164,6 +164,7 @@ namespace Tests {
             Assert.AreEqual(1, counterGrandParent, "Grand Parent counter is invalid at event 4.");
             Assert.AreEqual(1, counterParent, "Parent counter is invalid at event 4.");
             Assert.AreEqual(1, counterChild, "Child counter is invalid at event 4.");
+            always.Cancel();
         }
 
         [Test]
@@ -175,7 +176,7 @@ namespace Tests {
             var counterCoroutineA = 0;
             var counter = 0;
 
-            CoroutineHandler.Start(OnCoroutineCreatedInfinite());
+            var infinite = CoroutineHandler.Start(OnCoroutineCreatedInfinite());
             CoroutineHandler.Start(OnEvent1());
             CoroutineHandler.Tick(1);
             CoroutineHandler.RaiseEvent(event1);
@@ -185,10 +186,10 @@ namespace Tests {
             CoroutineHandler.RaiseEvent(event3);
             Assert.AreEqual(3, counter);
             Assert.AreEqual(2, counterCoroutineA);
+            infinite.Cancel();
 
             IEnumerator<Wait> OnCoroutineCreatedInfinite() {
-                while (true)
-                {
+                while (true) {
                     yield return new Wait(coroutineCreated);
                     counterCoroutineA++;
                 }
@@ -259,14 +260,19 @@ namespace Tests {
             }
 
             const int highPriority = int.MaxValue;
-            CoroutineHandler.Start(ShouldExecuteBefore1(), priority: highPriority);
-            CoroutineHandler.Start(ShouldExecuteAfter());
-            CoroutineHandler.Start(ShouldExecuteBefore0(), priority: highPriority);
-            CoroutineHandler.Start(ShouldExecuteFinally(), priority: -1);
+            var before1 = CoroutineHandler.Start(ShouldExecuteBefore1(), priority: highPriority);
+            var after = CoroutineHandler.Start(ShouldExecuteAfter());
+            var before0 = CoroutineHandler.Start(ShouldExecuteBefore0(), priority: highPriority);
+            var @finally = CoroutineHandler.Start(ShouldExecuteFinally(), priority: -1);
             CoroutineHandler.Tick(1);
             CoroutineHandler.RaiseEvent(myEvent);
             Assert.AreEqual(1, counterShouldExecuteAfter, $"ShouldExecuteAfter counter  {counterShouldExecuteAfter} is invalid.");
             Assert.AreEqual(1, counterShouldExecuteFinally, $"ShouldExecuteFinally counter  {counterShouldExecuteFinally} is invalid.");
+           
+            before1.Cancel();
+            after.Cancel();
+            before0.Cancel();
+            @finally.Cancel();
         }
 
         [Test]

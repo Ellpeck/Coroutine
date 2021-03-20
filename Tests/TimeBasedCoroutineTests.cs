@@ -167,7 +167,7 @@ namespace Tests {
                 p.OnFinished += ac => CoroutineHandler.Start(Child());
             }
 
-            CoroutineHandler.Start(AlwaysRunning());
+            var always = CoroutineHandler.Start(AlwaysRunning());
             CoroutineHandler.Start(GrandParent());
             Assert.AreEqual(0, counterAlwaysRunning, "Always running counter is invalid at time 0.");
             Assert.AreEqual(0, counterGrandParent, "Grand Parent counter is invalid at time 0.");
@@ -193,6 +193,7 @@ namespace Tests {
             Assert.AreEqual(1, counterGrandParent, "Grand Parent counter is invalid at time 4.");
             Assert.AreEqual(1, counterParent, "Parent counter is invalid at time 4.");
             Assert.AreEqual(1, counterChild, "Child counter is invalid at time 4.");
+            always.Cancel();
         }
 
         [Test]
@@ -239,13 +240,18 @@ namespace Tests {
             }
 
             const int highPriority = int.MaxValue;
-            CoroutineHandler.Start(ShouldExecuteBefore1(), priority: highPriority);
-            CoroutineHandler.Start(ShouldExecuteAfter());
-            CoroutineHandler.Start(ShouldExecuteBefore0(), priority: highPriority);
-            CoroutineHandler.Start(ShouldExecuteFinally(), priority: -1);
+            var before1 = CoroutineHandler.Start(ShouldExecuteBefore1(), priority: highPriority);
+            var after = CoroutineHandler.Start(ShouldExecuteAfter());
+            var before0 = CoroutineHandler.Start(ShouldExecuteBefore0(), priority: highPriority);
+            var @finally = CoroutineHandler.Start(ShouldExecuteFinally(), priority: -1);
             CoroutineHandler.Tick(10);
             Assert.AreEqual(1, counterShouldExecuteAfter, $"ShouldExecuteAfter counter  {counterShouldExecuteAfter} is invalid.");
             Assert.AreEqual(1, counterShouldExecuteFinally, $"ShouldExecuteFinally counter  {counterShouldExecuteFinally} is invalid.");
+
+            before1.Cancel();
+            after.Cancel();
+            before0.Cancel();
+            @finally.Cancel();
         }
 
         [Test]
@@ -268,8 +274,8 @@ namespace Tests {
                 }
             }
 
-            CoroutineHandler.Start(IncrementCounter0Ever10Seconds());
-            CoroutineHandler.Start(IncrementCounter1Every5Seconds());
+            var incCounter0 = CoroutineHandler.Start(IncrementCounter0Ever10Seconds());
+            var incCounter1 = CoroutineHandler.Start(IncrementCounter1Every5Seconds());
             CoroutineHandler.Tick(3);
             Assert.AreEqual(0, counter0, "Incorrect counter0 value after 3 seconds.");
             Assert.AreEqual(0, counter1, "Incorrect counter1 value after 3 seconds.");
@@ -284,6 +290,9 @@ namespace Tests {
             CoroutineHandler.Tick(5);
             Assert.AreEqual(1, counter0, "Incorrect counter0 value after 10 seconds.");
             Assert.AreEqual(2, counter1, "Incorrect counter1 value after next 5 seconds.");
+
+            incCounter0.Cancel();
+            incCounter1.Cancel();
         }
 
         [Test]
@@ -329,63 +338,55 @@ namespace Tests {
         }
 
         [Test]
-        public void TestTickWithNestedAddAndRaiseEvent()
-        {
+        public void TestTickWithNestedAddAndRaiseEvent() {
             var coroutineCreated = new Event();
             var counterCoroutineA = 0;
             var counter = 0;
 
-            CoroutineHandler.Start(OnCoroutineCreatedInfinite());
+            var infinite = CoroutineHandler.Start(OnCoroutineCreatedInfinite());
             CoroutineHandler.Start(OnEvent1());
             CoroutineHandler.Tick(1);
             CoroutineHandler.Tick(1);
             CoroutineHandler.Tick(1);
             Assert.AreEqual(3, counter);
             Assert.AreEqual(2, counterCoroutineA);
+            infinite.Cancel();
 
-            IEnumerator<Wait> OnCoroutineCreatedInfinite()
-            {
-                while (true)
-                {
+            IEnumerator<Wait> OnCoroutineCreatedInfinite() {
+                while (true) {
                     yield return new Wait(coroutineCreated);
                     counterCoroutineA++;
                 }
             }
 
-            IEnumerator<Wait> OnEvent1()
-            {
+            IEnumerator<Wait> OnEvent1() {
                 yield return new Wait(1);
                 counter++;
                 CoroutineHandler.Start(OnEvent2());
                 CoroutineHandler.RaiseEvent(coroutineCreated);
             }
 
-            IEnumerator<Wait> OnEvent2()
-            {
+            IEnumerator<Wait> OnEvent2() {
                 yield return new Wait(1);
                 counter++;
                 CoroutineHandler.Start(OnEvent3());
                 CoroutineHandler.RaiseEvent(coroutineCreated);
             }
 
-            IEnumerator<Wait> OnEvent3()
-            {
+            IEnumerator<Wait> OnEvent3() {
                 yield return new Wait(1);
                 counter++;
             }
         }
 
         [Test]
-        public void TestTickWithNestedAddAndRaiseEventOnFinish()
-        {
+        public void TestTickWithNestedAddAndRaiseEventOnFinish() {
             var onChildCreated = new Event();
             var onParentCreated = new Event();
             var counterAlwaysRunning = 0;
 
-            IEnumerator<Wait> AlwaysRunning()
-            {
-                while (true)
-                {
+            IEnumerator<Wait> AlwaysRunning() {
+                while (true) {
                     yield return new Wait(1);
                     counterAlwaysRunning++;
                 }
@@ -393,16 +394,14 @@ namespace Tests {
 
             var counterChild = 0;
 
-            IEnumerator<Wait> Child()
-            {
+            IEnumerator<Wait> Child() {
                 yield return new Wait(1);
                 counterChild++;
             }
 
             var counterParent = 0;
 
-            IEnumerator<Wait> Parent()
-            {
+            IEnumerator<Wait> Parent() {
                 yield return new Wait(1);
                 counterParent++;
                 // OnFinish I will start child.
@@ -410,8 +409,7 @@ namespace Tests {
 
             var counterGrandParent = 0;
 
-            IEnumerator<Wait> GrandParent()
-            {
+            IEnumerator<Wait> GrandParent() {
                 yield return new Wait(1);
                 counterGrandParent++;
                 // Nested corotuine starting.
@@ -424,7 +422,7 @@ namespace Tests {
                 };
             }
 
-            CoroutineHandler.Start(AlwaysRunning());
+            var always = CoroutineHandler.Start(AlwaysRunning());
             CoroutineHandler.Start(GrandParent());
             Assert.AreEqual(0, counterAlwaysRunning, "Always running counter is invalid at event 0.");
             Assert.AreEqual(0, counterGrandParent, "Grand Parent counter is invalid at event 0.");
@@ -450,6 +448,8 @@ namespace Tests {
             Assert.AreEqual(1, counterGrandParent, "Grand Parent counter is invalid at event 4.");
             Assert.AreEqual(1, counterParent, "Parent counter is invalid at event 4.");
             Assert.AreEqual(1, counterChild, "Child counter is invalid at event 4.");
+            always.Cancel();
         }
+
     }
 }
