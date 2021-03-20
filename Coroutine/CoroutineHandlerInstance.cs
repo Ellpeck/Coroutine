@@ -12,8 +12,8 @@ namespace Coroutine {
 
         private readonly List<ActiveCoroutine> tickingCoroutines = new List<ActiveCoroutine>();
         private readonly Dictionary<Event, List<ActiveCoroutine>> eventCoroutines = new Dictionary<Event, List<ActiveCoroutine>>();
-        private readonly Queue<ActiveCoroutine> eventCoroutinesToRemove = new Queue<ActiveCoroutine>();
-        private readonly Queue<ActiveCoroutine> outstandingCoroutines = new Queue<ActiveCoroutine>();
+        private readonly HashSet<ActiveCoroutine> eventCoroutinesToRemove = new HashSet<ActiveCoroutine>();
+        private readonly HashSet<ActiveCoroutine> outstandingCoroutines = new HashSet<ActiveCoroutine>();
         private readonly Stopwatch stopwatch = new Stopwatch();
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace Coroutine {
         public ActiveCoroutine Start(IEnumerator<Wait> coroutine, string name = "", int priority = 0) {
             var inst = new ActiveCoroutine(coroutine, name, priority, this.stopwatch);
             if (inst.MoveNext())
-                this.outstandingCoroutines.Enqueue(inst);
+                this.outstandingCoroutines.Add(inst);
             return inst;
         }
 
@@ -74,7 +74,7 @@ namespace Coroutine {
                 if (c.Tick(deltaSeconds)) {
                     return true;
                 } else if (c.IsWaitingForEvent) {
-                    this.outstandingCoroutines.Enqueue(c);
+                    this.outstandingCoroutines.Add(c);
                     return true;
                 }
                 return false;
@@ -103,10 +103,10 @@ namespace Coroutine {
                     if (this.eventCoroutinesToRemove.Contains(c))
                         continue;
                     if (c.OnEvent(evt)) {
-                        this.eventCoroutinesToRemove.Enqueue(c);
+                        this.eventCoroutinesToRemove.Add(c);
                     } else if (!c.IsWaitingForEvent) {
-                        this.outstandingCoroutines.Enqueue(c);
-                        this.eventCoroutinesToRemove.Enqueue(c);
+                        this.eventCoroutinesToRemove.Add(c);
+                        this.outstandingCoroutines.Add(c);
                     }
                 }
             }
@@ -121,18 +121,17 @@ namespace Coroutine {
         }
 
         private void MoveOutstandingCoroutines() {
-            while (this.eventCoroutinesToRemove.Count > 0) {
-                var c = this.eventCoroutinesToRemove.Peek();
+            // RemoveWhere is twice as fast as iterating and then clearing
+            this.eventCoroutinesToRemove.RemoveWhere(c => {
                 this.GetEventCoroutines(c.Event, 0).Remove(c);
-                this.eventCoroutinesToRemove.Dequeue();
-            }
-            while (this.outstandingCoroutines.Count > 0) {
-                var coroutine = this.outstandingCoroutines.Peek();
-                var list = coroutine.IsWaitingForEvent ? this.GetEventCoroutines(coroutine.Event, 1) : this.tickingCoroutines;
-                var position = list.BinarySearch(coroutine);
-                list.Insert(position < 0 ? ~position : position, coroutine);
-                this.outstandingCoroutines.Dequeue();
-            }
+                return true;
+            });
+            this.outstandingCoroutines.RemoveWhere(c => {
+                var list = c.IsWaitingForEvent ? this.GetEventCoroutines(c.Event, 1) : this.tickingCoroutines;
+                var position = list.BinarySearch(c);
+                list.Insert(position < 0 ? ~position : position, c);
+                return true;
+            });
         }
 
         private List<ActiveCoroutine> GetEventCoroutines(Event evt, int capacity) {
