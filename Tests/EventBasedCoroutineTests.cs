@@ -85,7 +85,7 @@ namespace Tests {
             var cr = CoroutineHandler.Start(OnEvent());
             CoroutineHandler.Tick(1);
             cr.OnFinished += SetCounterToUnreachableValue;
-            for (int i = 0; i < 10; i++)
+            for (var i = 0; i < 10; i++)
                 CoroutineHandler.RaiseEvent(myEvent);
             Assert.AreEqual(-100, counter, "Incorrect counter value.");
         }
@@ -171,9 +171,9 @@ namespace Tests {
             var event1 = new Event();
             var event2 = new Event();
             var event3 = new Event();
-            var CoroutineCreated = new Event();
-            int counterCoroutineA = 0;
-            int counter = 0;
+            var coroutineCreated = new Event();
+            var counterCoroutineA = 0;
+            var counter = 0;
 
             CoroutineHandler.Start(OnCoroutineCreatedInfinite());
             CoroutineHandler.Start(OnEvent1());
@@ -189,7 +189,7 @@ namespace Tests {
             IEnumerator<Wait> OnCoroutineCreatedInfinite() {
                 while (true)
                 {
-                    yield return new Wait(CoroutineCreated);
+                    yield return new Wait(coroutineCreated);
                     counterCoroutineA++;
                 }
             }
@@ -198,14 +198,14 @@ namespace Tests {
                 yield return new Wait(event1);
                 counter++;
                 CoroutineHandler.Start(OnEvent2());
-                CoroutineHandler.RaiseEvent(CoroutineCreated);
+                CoroutineHandler.RaiseEvent(coroutineCreated);
             }
 
             IEnumerator<Wait> OnEvent2() {
                 yield return new Wait(event2);
                 counter++;
                 CoroutineHandler.Start(OnEvent3());
-                CoroutineHandler.RaiseEvent(CoroutineCreated);
+                CoroutineHandler.RaiseEvent(coroutineCreated);
             }
 
             IEnumerator<Wait> OnEvent3() {
@@ -258,7 +258,7 @@ namespace Tests {
                 }
             }
 
-            var highPriority = int.MaxValue;
+            const int highPriority = int.MaxValue;
             CoroutineHandler.Start(ShouldExecuteBefore1(), priority: highPriority);
             CoroutineHandler.Start(ShouldExecuteAfter());
             CoroutineHandler.Start(ShouldExecuteBefore0(), priority: highPriority);

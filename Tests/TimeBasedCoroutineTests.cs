@@ -21,7 +21,7 @@ namespace Tests {
             Assert.AreEqual(string.Empty, cr.Name, "Incorrect default name found");
             Assert.AreEqual(0, cr.Priority, "Default priority is not minimum");
             for (var i = 0; i < 5; i++)
-                this.SimulateTime(1);
+                SimulateTime(1);
             Assert.AreEqual(2, counter, "instruction after yield is not executed.");
             Assert.AreEqual(true, cr.IsFinished, "Incorrect IsFinished value.");
             Assert.AreEqual(false, cr.WasCanceled, "Incorrect IsCanceled value.");
@@ -49,7 +49,7 @@ namespace Tests {
             cr[0] = CoroutineHandler.Start(OnTimeTickNeverReturnYield());
             cr[1] = CoroutineHandler.Start(OnTimeTickYieldBreak());
             for (var i = 0; i < 5; i++)
-                this.SimulateTime(1);
+                SimulateTime(1);
 
             Assert.AreEqual(3, counter, "Incorrect counter value.");
             for (var i = 0; i < cr.Length; i++) {
@@ -71,7 +71,7 @@ namespace Tests {
 
             var cr = CoroutineHandler.Start(OnTimeTickYieldDefault());
             for (var i = 0; i < 5; i++)
-                this.SimulateTime(1);
+                SimulateTime(1);
 
             Assert.AreEqual(2, counter, "Incorrect counter value.");
             Assert.AreEqual(true, cr.IsFinished, "Incorrect IsFinished value.");
@@ -97,7 +97,7 @@ namespace Tests {
             var cr = CoroutineHandler.Start(OnTimerTickInfinite());
             cr.OnFinished += SetCounterToUnreachableValue;
             for (var i = 0; i < 50; i++)
-                this.SimulateTime(1);
+                SimulateTime(1);
 
             Assert.AreEqual(51, counter, "Incorrect counter value.");
             Assert.AreEqual(false, cr.IsFinished, "Incorrect IsFinished value.");
@@ -126,7 +126,7 @@ namespace Tests {
 
             var cr = CoroutineHandler.Start(OnTimeTick());
             cr.OnFinished += SetCounterToUnreachableValue;
-            this.SimulateTime(50);
+            SimulateTime(50);
             Assert.AreEqual(-100, counter, "Incorrect counter value.");
         }
 
@@ -173,22 +173,22 @@ namespace Tests {
             Assert.AreEqual(0, counterGrandParent, "Grand Parent counter is invalid at time 0.");
             Assert.AreEqual(0, counterParent, "Parent counter is invalid at time 0.");
             Assert.AreEqual(0, counterChild, "Child counter is invalid at time 0.");
-            this.SimulateTime(1);
+            SimulateTime(1);
             Assert.AreEqual(1, counterAlwaysRunning, "Always running counter is invalid at time 1.");
             Assert.AreEqual(1, counterGrandParent, "Grand Parent counter is invalid at time 1.");
             Assert.AreEqual(0, counterParent, "Parent counter is invalid at time 1.");
             Assert.AreEqual(0, counterChild, "Child counter is invalid at time 1.");
-            this.SimulateTime(1);
+            SimulateTime(1);
             Assert.AreEqual(2, counterAlwaysRunning, "Always running counter is invalid at time 2.");
             Assert.AreEqual(1, counterGrandParent, "Grand Parent counter is invalid at time 2.");
             Assert.AreEqual(1, counterParent, "Parent counter is invalid at time 2.");
             Assert.AreEqual(0, counterChild, "Child counter is invalid at time 2.");
-            this.SimulateTime(1);
+            SimulateTime(1);
             Assert.AreEqual(3, counterAlwaysRunning, "Always running counter is invalid at time 3.");
             Assert.AreEqual(1, counterGrandParent, "Grand Parent counter is invalid at time 3.");
             Assert.AreEqual(1, counterParent, "Parent counter is invalid at time 3.");
             Assert.AreEqual(1, counterChild, "Child counter is invalid at time 3.");
-            this.SimulateTime(1);
+            SimulateTime(1);
             Assert.AreEqual(4, counterAlwaysRunning, "Always running counter is invalid at time 4.");
             Assert.AreEqual(1, counterGrandParent, "Grand Parent counter is invalid at time 4.");
             Assert.AreEqual(1, counterParent, "Parent counter is invalid at time 4.");
@@ -238,12 +238,12 @@ namespace Tests {
                 }
             }
 
-            var highPriority = int.MaxValue;
+            const int highPriority = int.MaxValue;
             CoroutineHandler.Start(ShouldExecuteBefore1(), priority: highPriority);
             CoroutineHandler.Start(ShouldExecuteAfter());
             CoroutineHandler.Start(ShouldExecuteBefore0(), priority: highPriority);
             CoroutineHandler.Start(ShouldExecuteFinally(), priority: -1);
-            this.SimulateTime(10);
+            SimulateTime(10);
             Assert.AreEqual(1, counterShouldExecuteAfter, $"ShouldExecuteAfter counter  {counterShouldExecuteAfter} is invalid.");
             Assert.AreEqual(1, counterShouldExecuteFinally, $"ShouldExecuteFinally counter  {counterShouldExecuteFinally} is invalid.");
         }
@@ -270,10 +270,10 @@ namespace Tests {
 
             CoroutineHandler.Start(IncrementCounter0Ever10Seconds());
             CoroutineHandler.Start(IncrementCounter1Every5Seconds());
-            this.SimulateTime(3);
+            SimulateTime(3);
             Assert.AreEqual(0, counter0, "Incorrect counter0 value after 3 seconds.");
             Assert.AreEqual(0, counter1, "Incorrect counter1 value after 3 seconds.");
-            this.SimulateTime(3);
+            SimulateTime(3);
             Assert.AreEqual(0, counter0, "Incorrect counter0 value after 6 seconds.");
             Assert.AreEqual(1, counter1, "Incorrect counter1 value after 6 seconds.");
 
@@ -281,7 +281,7 @@ namespace Tests {
             // increments 5 seconds after last yield. not 5 seconds since start.
             // So the when we send 3 seconds in the last SimulateTime,
             // the 3rd second was technically ignored.
-            this.SimulateTime(5);
+            SimulateTime(5);
             Assert.AreEqual(1, counter0, "Incorrect counter0 value after 10 seconds.");
             Assert.AreEqual(2, counter1, "Incorrect counter1 value after next 5 seconds.");
         }
@@ -293,9 +293,9 @@ namespace Tests {
                 counter++;
             }, "Bird");
 
-            this.SimulateTime(5);
+            SimulateTime(5);
             Assert.AreEqual(0, counter, "Incorrect counter value after 5 seconds.");
-            this.SimulateTime(5);
+            SimulateTime(5);
             Assert.AreEqual(1, counter, "Incorrect counter value after 10 seconds.");
             Assert.AreEqual(true, cr.IsFinished, "Incorrect IsFinished value.");
             Assert.AreEqual(false, cr.WasCanceled, "Incorrect IsCanceled value.");
@@ -305,7 +305,7 @@ namespace Tests {
 
         [Test]
         public void CoroutineStatsAre95PercentAccurate() {
-            IEnumerator<Wait> CoroutineTakesMax500Ms() {
+            static IEnumerator<Wait> CoroutineTakesMax500Ms() {
                 Thread.Sleep(200);
                 yield return new Wait(10);
                 Thread.Sleep(500);
@@ -313,7 +313,7 @@ namespace Tests {
 
             var cr = CoroutineHandler.Start(CoroutineTakesMax500Ms());
             for (var i = 0; i < 5; i++)
-                this.SimulateTime(50);
+                SimulateTime(50);
 
             const int expected1 = 350;
             const float errorbar1 = 5 / 100f * expected1;
@@ -328,7 +328,7 @@ namespace Tests {
             Assert.IsTrue(gTc && lTd, $"Maximum Move Next Time {cr.MaxMoveNextTime.Milliseconds} is invalid.");
         }
 
-        private void SimulateTime(double totalSeconds) {
+        private static void SimulateTime(double totalSeconds) {
             CoroutineHandler.Tick(totalSeconds);
         }
 
