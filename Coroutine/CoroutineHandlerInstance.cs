@@ -97,6 +97,8 @@ namespace Coroutine {
         /// <param name="evt">The event to raise</param>
         public void RaiseEvent(Event evt) {
             for (var i = 0; i < this.eventCoroutines.Count; i++) {
+                if (this.eventCoroutinesToRemove.Contains(i))
+                    continue;
                 var c = this.eventCoroutines[i];
                 if (c.OnEvent(evt)) {
                     this.eventCoroutinesToRemove.Add(i);
