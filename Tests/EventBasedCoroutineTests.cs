@@ -18,8 +18,10 @@ namespace Tests {
 
             var cr = CoroutineHandler.Start(OnEventTriggered());
             Assert.AreEqual(1, counter, "instruction before yield is not executed.");
+            CoroutineHandler.Tick(1);
             CoroutineHandler.RaiseEvent(myEvent);
             Assert.AreEqual(2, counter, "instruction after yield is not executed.");
+            CoroutineHandler.Tick(1);
             CoroutineHandler.RaiseEvent(myEvent);
             Assert.AreEqual(2, counter, "instruction after yield is not executed.");
 
@@ -46,6 +48,7 @@ namespace Tests {
             }
 
             var cr = CoroutineHandler.Start(OnEventTriggeredInfinite());
+            CoroutineHandler.Tick(1);
             cr.OnFinished += SetCounterToUnreachableValue;
             for (var i = 0; i < 50; i++)
                 CoroutineHandler.RaiseEvent(myOtherEvent);
@@ -80,6 +83,7 @@ namespace Tests {
             }
 
             var cr = CoroutineHandler.Start(OnEvent());
+            CoroutineHandler.Tick(1);
             cr.OnFinished += SetCounterToUnreachableValue;
             for (int i = 0; i < 10; i++)
                 CoroutineHandler.RaiseEvent(myEvent);
@@ -88,6 +92,8 @@ namespace Tests {
 
         [Test]
         public void TestNestedCoroutine() {
+            var onChildCreated = new Event();
+            var onParentCreated = new Event();
             var myEvent = new Event();
             var counterAlwaysRunning = 0;
 
@@ -120,8 +126,12 @@ namespace Tests {
                 counterGrandParent++;
                 // Nested corotuine starting.
                 var p = CoroutineHandler.Start(Parent());
+                CoroutineHandler.RaiseEvent(onParentCreated);
                 // Nested corotuine starting in OnFinished.
-                p.OnFinished += ac => CoroutineHandler.Start(Child());
+                p.OnFinished += ac => {
+                    CoroutineHandler.Start(Child());
+                    CoroutineHandler.RaiseEvent(onChildCreated);
+                };
             }
 
             CoroutineHandler.Start(AlwaysRunning());
@@ -130,26 +140,78 @@ namespace Tests {
             Assert.AreEqual(0, counterGrandParent, "Grand Parent counter is invalid at event 0.");
             Assert.AreEqual(0, counterParent, "Parent counter is invalid at event 0.");
             Assert.AreEqual(0, counterChild, "Child counter is invalid at event 0.");
+            CoroutineHandler.Tick(1);
             CoroutineHandler.RaiseEvent(myEvent);
             Assert.AreEqual(1, counterAlwaysRunning, "Always running counter is invalid at event 1.");
             Assert.AreEqual(1, counterGrandParent, "Grand Parent counter is invalid at event 1.");
             Assert.AreEqual(0, counterParent, "Parent counter is invalid at event 1.");
             Assert.AreEqual(0, counterChild, "Child counter is invalid at event 1.");
+            CoroutineHandler.Tick(1);
             CoroutineHandler.RaiseEvent(myEvent);
             Assert.AreEqual(2, counterAlwaysRunning, "Always running counter is invalid at event 2.");
             Assert.AreEqual(1, counterGrandParent, "Grand Parent counter is invalid at event 2.");
             Assert.AreEqual(1, counterParent, "Parent counter is invalid at event 2.");
             Assert.AreEqual(0, counterChild, "Child counter is invalid at event 2.");
+            CoroutineHandler.Tick(1);
             CoroutineHandler.RaiseEvent(myEvent);
             Assert.AreEqual(3, counterAlwaysRunning, "Always running counter is invalid at event 3.");
             Assert.AreEqual(1, counterGrandParent, "Grand Parent counter is invalid at event 3.");
             Assert.AreEqual(1, counterParent, "Parent counter is invalid at event 3.");
             Assert.AreEqual(1, counterChild, "Child counter is invalid at event 3.");
+            CoroutineHandler.Tick(1);
             CoroutineHandler.RaiseEvent(myEvent);
             Assert.AreEqual(4, counterAlwaysRunning, "Always running counter is invalid at event 4.");
             Assert.AreEqual(1, counterGrandParent, "Grand Parent counter is invalid at event 4.");
             Assert.AreEqual(1, counterParent, "Parent counter is invalid at event 4.");
             Assert.AreEqual(1, counterChild, "Child counter is invalid at event 4.");
+        }
+
+        [Test]
+        public void TestNestedRaiseEvent() {
+            var event1 = new Event();
+            var event2 = new Event();
+            var event3 = new Event();
+            var CoroutineCreated = new Event();
+            int counterCoroutineA = 0;
+            int counter = 0;
+
+            CoroutineHandler.Start(OnCoroutineCreatedInfinite());
+            CoroutineHandler.Start(OnEvent1());
+            CoroutineHandler.Tick(1);
+            CoroutineHandler.RaiseEvent(event1);
+            CoroutineHandler.Tick(1);
+            CoroutineHandler.RaiseEvent(event2);
+            CoroutineHandler.Tick(1);
+            CoroutineHandler.RaiseEvent(event3);
+            Assert.AreEqual(3, counter);
+            Assert.AreEqual(2, counterCoroutineA);
+
+            IEnumerator<Wait> OnCoroutineCreatedInfinite() {
+                while (true)
+                {
+                    yield return new Wait(CoroutineCreated);
+                    counterCoroutineA++;
+                }
+            }
+
+            IEnumerator<Wait> OnEvent1() {
+                yield return new Wait(event1);
+                counter++;
+                CoroutineHandler.Start(OnEvent2());
+                CoroutineHandler.RaiseEvent(CoroutineCreated);
+            }
+
+            IEnumerator<Wait> OnEvent2() {
+                yield return new Wait(event2);
+                counter++;
+                CoroutineHandler.Start(OnEvent3());
+                CoroutineHandler.RaiseEvent(CoroutineCreated);
+            }
+
+            IEnumerator<Wait> OnEvent3() {
+                yield return new Wait(event3);
+                counter++;
+            }
         }
 
         [Test]
@@ -201,6 +263,7 @@ namespace Tests {
             CoroutineHandler.Start(ShouldExecuteAfter());
             CoroutineHandler.Start(ShouldExecuteBefore0(), priority: highPriority);
             CoroutineHandler.Start(ShouldExecuteFinally(), priority: -1);
+            CoroutineHandler.Tick(1);
             CoroutineHandler.RaiseEvent(myEvent);
             Assert.AreEqual(1, counterShouldExecuteAfter, $"ShouldExecuteAfter counter  {counterShouldExecuteAfter} is invalid.");
             Assert.AreEqual(1, counterShouldExecuteFinally, $"ShouldExecuteFinally counter  {counterShouldExecuteFinally} is invalid.");
@@ -223,6 +286,7 @@ namespace Tests {
             });
 
             Assert.AreEqual(0, counter, "Incorrect counter value after 5 seconds.");
+            CoroutineHandler.Tick(1);
             CoroutineHandler.RaiseEvent(myEvent);
             Assert.AreEqual(3, counter, "Incorrect counter value after 10 seconds.");
             Assert.AreEqual(true, cr.IsFinished, "Incorrect IsFinished value.");
