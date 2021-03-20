@@ -13,7 +13,7 @@ namespace Coroutine {
         private readonly List<ActiveCoroutine> tickingCoroutines = new List<ActiveCoroutine>();
         private readonly List<ActiveCoroutine> eventCoroutines = new List<ActiveCoroutine>();
         private readonly Queue<ActiveCoroutine> outstandingCoroutines = new Queue<ActiveCoroutine>();
-        private readonly Dictionary<int, byte> eventcoroutinesIndexesToDelete = new Dictionary<int, byte>();
+        private readonly ISet<int> eventCoroutinesToRemove = new HashSet<int>();
         private readonly Stopwatch stopwatch = new Stopwatch();
 
         /// <summary>
@@ -66,11 +66,11 @@ namespace Coroutine {
 
         /// <summary>
         /// Ticks this coroutine handler, causing all time-based <see cref="Wait"/>s to be ticked.
+        /// Note that this method needs to be called even if only event-based coroutines are used.
         /// </summary>
         /// <param name="deltaSeconds">The amount of seconds that have passed since the last time this method was invoked</param>
         public void Tick(double deltaSeconds) {
-            this.removeEventCoroutines();
-            this.AddOutstandingCoroutines();
+            this.MoveOutstandingCoroutines();
             this.tickingCoroutines.RemoveAll(c => {
                 if (c.Tick(deltaSeconds)) {
                     return true;
@@ -88,12 +88,12 @@ namespace Coroutine {
         /// <param name="evt">The event to raise</param>
         public void RaiseEvent(Event evt) {
             for (var i = 0; i < this.eventCoroutines.Count; i++) {
-                var eventCoroutine = this.eventCoroutines[i];
-                if (eventCoroutine.OnEvent(evt)) {
-                    this.eventcoroutinesIndexesToDelete[i] = 1;
-                } else if (!eventCoroutine.IsWaitingForEvent()) {
-                    this.outstandingCoroutines.Enqueue(eventCoroutine);
-                    this.eventcoroutinesIndexesToDelete[i] = 1;
+                var c = this.eventCoroutines[i];
+                if (c.OnEvent(evt)) {
+                    this.eventCoroutinesToRemove.Add(i);
+                } else if (!c.IsWaitingForEvent()) {
+                    this.outstandingCoroutines.Enqueue(c);
+                    this.eventCoroutinesToRemove.Add(i);
                 }
             }
         }
@@ -106,22 +106,17 @@ namespace Coroutine {
             return this.tickingCoroutines.Concat(this.eventCoroutines);
         }
 
-        private void AddOutstandingCoroutines() {
+        private void MoveOutstandingCoroutines() {
+            var i = 0;
+            this.eventCoroutines.RemoveAll(c => this.eventCoroutinesToRemove.Contains(i++));
+            this.eventCoroutinesToRemove.Clear();
+
             while (this.outstandingCoroutines.Count > 0) {
                 var coroutine = this.outstandingCoroutines.Dequeue();
                 var list = coroutine.IsWaitingForEvent() ? this.eventCoroutines : this.tickingCoroutines;
                 var position = list.BinarySearch(coroutine);
                 list.Insert(position < 0 ? ~position : position, coroutine);
             }
-        }
-
-        private void removeEventCoroutines() {
-            int counter = 0;
-            this.eventCoroutines.RemoveAll(c => {
-                return this.eventcoroutinesIndexesToDelete.ContainsKey(counter++);
-            });
-
-            this.eventcoroutinesIndexesToDelete.Clear();
         }
 
         private static IEnumerator<Wait> InvokeLaterImpl(Wait wait, Action action) {
