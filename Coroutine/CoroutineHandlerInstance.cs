@@ -83,6 +83,15 @@ namespace Coroutine {
         }
 
         /// <summary>
+        /// Ticks this coroutine handler, causing all time-based <see cref="Wait"/>s to be ticked.
+        /// This is a convenience method that calls <see cref="Tick(double)"/>, but accepts a <see cref="TimeSpan"/> instead of an amount of seconds.
+        /// </summary>
+        /// <param name="delta">The time that has passed since the last time this method was invoked</param>
+        public void Tick(TimeSpan delta) {
+            this.Tick(delta.TotalSeconds);
+        }
+
+        /// <summary>
         /// Raises the given event, causing all event-based <see cref="Wait"/>s to be updated.
         /// </summary>
         /// <param name="evt">The event to raise</param>

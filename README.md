@@ -15,12 +15,12 @@ Additionally, Coroutine provides the following features:
 
 # How to Use
 ## Setting up the CoroutineHandler
-The `CoroutineHandler` is the place where coroutines get executed. For this to occur, the `Tick` method needs to be called continuously. The `Tick` method takes a single parameter which represents the amount of seconds since the last time it was called. It can either be called in your application's existing update loop or as follows.
+The `CoroutineHandler` is the place where coroutines get executed. For this to occur, the `Tick` method needs to be called continuously. The `Tick` method takes a single parameter which represents the amount of time since the last time it was called. It can either be called in your application's existing update loop or as follows.
 ```cs
 var lastTime = DateTime.Now;
 while (true) {
     var currTime = DateTime.Now;
-    CoroutineHandler.Tick((currTime - lastTime).TotalSeconds);
+    CoroutineHandler.Tick(currTime - lastTime);
     lastTime = currTime;
     Thread.Sleep(1);
 }
@@ -59,11 +59,14 @@ private static IEnumerator<Wait> WaitForTestEvent() {
     Console.WriteLine("Test event received");
 }
 ```
+Of course, having time-based waits and event-based waits in the same coroutine is also supported.
 
 To actually cause the event to be raised, causing all currently waiting coroutines to be continued, simply call `RaiseEvent`:
 ```cs
 CoroutineHandler.RaiseEvent(TestEvent);
 ```
+
+Note that, since `Tick` is an important lifecycle method, it has to be [called continuously](#Setting-up-the-CoroutineHandler) even if only event-based coroutines are used.
 
 ## Additional Examples
 For additional examples, take a look at the [Example class](https://github.com/Ellpeck/Coroutine/blob/master/Example/Example.cs).

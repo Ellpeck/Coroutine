@@ -30,9 +30,13 @@ namespace Coroutine {
             return Instance.InvokeLater(wait, action, name, priority);
         }
 
-        /// <inheritdoc cref="CoroutineHandlerInstance.Tick"/>
+        /// <inheritdoc cref="CoroutineHandlerInstance.Tick(double)"/>
         public static void Tick(double deltaSeconds) {
             Instance.Tick(deltaSeconds);
+        }
+        /// <inheritdoc cref="CoroutineHandlerInstance.Tick(TimeSpan)"/>
+        public static void Tick(TimeSpan delta) {
+            Instance.Tick(delta);
         }
 
         /// <inheritdoc cref="CoroutineHandlerInstance.RaiseEvent"/>

@@ -26,7 +26,7 @@ namespace Example {
             var lastTime = DateTime.Now;
             while (true) {
                 var currTime = DateTime.Now;
-                CoroutineHandler.Tick((currTime - lastTime).TotalSeconds);
+                CoroutineHandler.Tick(currTime - lastTime);
                 lastTime = currTime;
                 Thread.Sleep(1);
             }
