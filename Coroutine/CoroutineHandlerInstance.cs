@@ -96,7 +96,7 @@ namespace Coroutine {
         /// <param name="evt">The event to raise</param>
         public void RaiseEvent(Event evt) {
             this.MoveOutstandingCoroutines();
-            var coroutines = this.GetEventCoroutines(evt, 0);
+            var coroutines = this.GetEventCoroutines(evt, false);
             if (coroutines != null) {
                 for (var i = 0; i < coroutines.Count; i++) {
                     var c = coroutines[i];
@@ -123,20 +123,20 @@ namespace Coroutine {
         private void MoveOutstandingCoroutines() {
             // RemoveWhere is twice as fast as iterating and then clearing
             this.eventCoroutinesToRemove.RemoveWhere(c => {
-                this.GetEventCoroutines(c.Event, 0).Remove(c);
+                this.GetEventCoroutines(c.Event, false).Remove(c);
                 return true;
             });
             this.outstandingCoroutines.RemoveWhere(c => {
-                var list = c.IsWaitingForEvent ? this.GetEventCoroutines(c.Event, 1) : this.tickingCoroutines;
+                var list = c.IsWaitingForEvent ? this.GetEventCoroutines(c.Event, true) : this.tickingCoroutines;
                 var position = list.BinarySearch(c);
                 list.Insert(position < 0 ? ~position : position, c);
                 return true;
             });
         }
 
-        private List<ActiveCoroutine> GetEventCoroutines(Event evt, int capacity) {
-            if (!this.eventCoroutines.TryGetValue(evt, out var ret) && capacity > 0) {
-                ret = new List<ActiveCoroutine>(capacity);
+        private List<ActiveCoroutine> GetEventCoroutines(Event evt, bool create) {
+            if (!this.eventCoroutines.TryGetValue(evt, out var ret) && create) {
+                ret = new List<ActiveCoroutine>();
                 this.eventCoroutines.Add(evt, ret);
             }
             return ret;
