@@ -69,7 +69,7 @@ namespace Coroutine {
         /// </summary>
         /// <param name="deltaSeconds">The amount of seconds that have passed since the last time this method was invoked</param>
         public void Tick(double deltaSeconds) {
-            this.MoveOutstandingCoroutines();
+            this.MoveOutstandingCoroutines(false);
             this.tickingCoroutines.RemoveAll(c => {
                 if (c.Tick(deltaSeconds)) {
                     return true;
@@ -95,7 +95,7 @@ namespace Coroutine {
         /// </summary>
         /// <param name="evt">The event to raise</param>
         public void RaiseEvent(Event evt) {
-            this.MoveOutstandingCoroutines();
+            this.MoveOutstandingCoroutines(true);
             var coroutines = this.GetEventCoroutines(evt, false);
             if (coroutines != null) {
                 for (var i = 0; i < coroutines.Count; i++) {
@@ -120,18 +120,25 @@ namespace Coroutine {
             return this.tickingCoroutines.Concat(this.eventCoroutines.Values.SelectMany(c => c));
         }
 
-        private void MoveOutstandingCoroutines() {
+        private void MoveOutstandingCoroutines(bool evt) {
             // RemoveWhere is twice as fast as iterating and then clearing
-            this.eventCoroutinesToRemove.RemoveWhere(c => {
-                this.GetEventCoroutines(c.Event, false).Remove(c);
-                return true;
-            });
-            this.outstandingCoroutines.RemoveWhere(c => {
-                var list = c.IsWaitingForEvent ? this.GetEventCoroutines(c.Event, true) : this.tickingCoroutines;
-                var position = list.BinarySearch(c);
-                list.Insert(position < 0 ? ~position : position, c);
-                return true;
-            });
+            if (this.eventCoroutinesToRemove.Count > 0) {
+                this.eventCoroutinesToRemove.RemoveWhere(c => {
+                    this.GetEventCoroutines(c.Event, false).Remove(c);
+                    return true;
+                });
+            }
+            if (this.outstandingCoroutines.Count > 0) {
+                this.outstandingCoroutines.RemoveWhere(c => {
+                    // we only want to enqueue coroutines that relate to the current type
+                    if (c.IsWaitingForEvent != evt)
+                        return false;
+                    var list = evt ? this.GetEventCoroutines(c.Event, true) : this.tickingCoroutines;
+                    var position = list.BinarySearch(c);
+                    list.Insert(position < 0 ? ~position : position, c);
+                    return true;
+                });
+            }
         }
 
         private List<ActiveCoroutine> GetEventCoroutines(Event evt, bool create) {
