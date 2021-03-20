@@ -66,7 +66,5 @@ To actually cause the event to be raised, causing all currently waiting coroutin
 CoroutineHandler.RaiseEvent(TestEvent);
 ```
 
-Note that, since `Tick` is an important lifecycle method, it has to be [called continuously](#Setting-up-the-CoroutineHandler) even if only event-based coroutines are used.
-
 ## Additional Examples
 For additional examples, take a look at the [Example class](https://github.com/Ellpeck/Coroutine/blob/master/Example/Example.cs).

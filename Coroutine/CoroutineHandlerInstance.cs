@@ -11,9 +11,9 @@ namespace Coroutine {
     public class CoroutineHandlerInstance {
 
         private readonly List<ActiveCoroutine> tickingCoroutines = new List<ActiveCoroutine>();
-        private readonly List<ActiveCoroutine> eventCoroutines = new List<ActiveCoroutine>();
+        private readonly Dictionary<Event, List<ActiveCoroutine>> eventCoroutines = new Dictionary<Event, List<ActiveCoroutine>>();
+        private readonly Queue<ActiveCoroutine> eventCoroutinesToRemove = new Queue<ActiveCoroutine>();
         private readonly Queue<ActiveCoroutine> outstandingCoroutines = new Queue<ActiveCoroutine>();
-        private readonly ISet<int> eventCoroutinesToRemove = new HashSet<int>();
         private readonly Stopwatch stopwatch = new Stopwatch();
 
         /// <summary>
@@ -23,7 +23,7 @@ namespace Coroutine {
         /// <summary>
         /// The amount of <see cref="ActiveCoroutine"/> instances that are currently waiting for an <see cref="Event"/>
         /// </summary>
-        public int EventCount => this.eventCoroutines.Count;
+        public int EventCount => this.eventCoroutines.Sum(c => c.Value.Count);
 
         /// <summary>
         /// Starts the given coroutine, returning a <see cref="ActiveCoroutine"/> object for management.
@@ -66,7 +66,6 @@ namespace Coroutine {
 
         /// <summary>
         /// Ticks this coroutine handler, causing all time-based <see cref="Wait"/>s to be ticked.
-        /// Note that this method needs to be called even if only event-based coroutines are used.
         /// </summary>
         /// <param name="deltaSeconds">The amount of seconds that have passed since the last time this method was invoked</param>
         public void Tick(double deltaSeconds) {
@@ -74,7 +73,7 @@ namespace Coroutine {
             this.tickingCoroutines.RemoveAll(c => {
                 if (c.Tick(deltaSeconds)) {
                     return true;
-                } else if (c.IsWaitingForEvent()) {
+                } else if (c.IsWaitingForEvent) {
                     this.outstandingCoroutines.Enqueue(c);
                     return true;
                 }
@@ -96,15 +95,19 @@ namespace Coroutine {
         /// </summary>
         /// <param name="evt">The event to raise</param>
         public void RaiseEvent(Event evt) {
-            for (var i = 0; i < this.eventCoroutines.Count; i++) {
-                if (this.eventCoroutinesToRemove.Contains(i))
-                    continue;
-                var c = this.eventCoroutines[i];
-                if (c.OnEvent(evt)) {
-                    this.eventCoroutinesToRemove.Add(i);
-                } else if (!c.IsWaitingForEvent()) {
-                    this.outstandingCoroutines.Enqueue(c);
-                    this.eventCoroutinesToRemove.Add(i);
+            this.MoveOutstandingCoroutines();
+            var coroutines = this.GetEventCoroutines(evt, 0);
+            if (coroutines != null) {
+                for (var i = 0; i < coroutines.Count; i++) {
+                    var c = coroutines[i];
+                    if (this.eventCoroutinesToRemove.Contains(c))
+                        continue;
+                    if (c.OnEvent(evt)) {
+                        this.eventCoroutinesToRemove.Enqueue(c);
+                    } else if (!c.IsWaitingForEvent) {
+                        this.outstandingCoroutines.Enqueue(c);
+                        this.eventCoroutinesToRemove.Enqueue(c);
+                    }
                 }
             }
         }
@@ -114,20 +117,30 @@ namespace Coroutine {
         /// </summary>
         /// <returns>All active coroutines</returns>
         public IEnumerable<ActiveCoroutine> GetActiveCoroutines() {
-            return this.tickingCoroutines.Concat(this.eventCoroutines);
+            return this.tickingCoroutines.Concat(this.eventCoroutines.Values.SelectMany(c => c));
         }
 
         private void MoveOutstandingCoroutines() {
-            var i = 0;
-            this.eventCoroutines.RemoveAll(c => this.eventCoroutinesToRemove.Contains(i++));
-            this.eventCoroutinesToRemove.Clear();
-
+            while (this.eventCoroutinesToRemove.Count > 0) {
+                var c = this.eventCoroutinesToRemove.Peek();
+                this.GetEventCoroutines(c.Event, 0).Remove(c);
+                this.eventCoroutinesToRemove.Dequeue();
+            }
             while (this.outstandingCoroutines.Count > 0) {
-                var coroutine = this.outstandingCoroutines.Dequeue();
-                var list = coroutine.IsWaitingForEvent() ? this.eventCoroutines : this.tickingCoroutines;
+                var coroutine = this.outstandingCoroutines.Peek();
+                var list = coroutine.IsWaitingForEvent ? this.GetEventCoroutines(coroutine.Event, 1) : this.tickingCoroutines;
                 var position = list.BinarySearch(coroutine);
                 list.Insert(position < 0 ? ~position : position, coroutine);
+                this.outstandingCoroutines.Dequeue();
             }
+        }
+
+        private List<ActiveCoroutine> GetEventCoroutines(Event evt, int capacity) {
+            if (!this.eventCoroutines.TryGetValue(evt, out var ret) && capacity > 0) {
+                ret = new List<ActiveCoroutine>(capacity);
+                this.eventCoroutines.Add(evt, ret);
+            }
+            return ret;
         }
 
         private static IEnumerator<Wait> InvokeLaterImpl(Wait wait, Action action) {

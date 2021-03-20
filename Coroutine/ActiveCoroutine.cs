@@ -13,6 +13,9 @@ namespace Coroutine {
         private readonly Stopwatch stopwatch;
         private Wait current;
 
+        internal Event Event => this.current.Event;
+        internal bool IsWaitingForEvent => this.Event != null;
+
         /// <summary>
         /// This property stores whether or not this active coroutine is finished.
         /// A coroutine is finished if all of its waits have passed, or if it <see cref="WasCanceled"/>.
@@ -79,18 +82,14 @@ namespace Coroutine {
         }
 
         internal bool Tick(double deltaSeconds) {
-            if (!this.WasCanceled) {
-                if (this.current.Tick(deltaSeconds))
-                    this.MoveNext();
-            }
+            if (!this.WasCanceled && this.current.Tick(deltaSeconds))
+                this.MoveNext();
             return this.IsFinished;
         }
 
         internal bool OnEvent(Event evt) {
-            if (!this.WasCanceled) {
-                if (this.current.OnEvent(evt))
-                    this.MoveNext();
-            }
+            if (!this.WasCanceled && Equals(this.current.Event, evt))
+                this.MoveNext();
             return this.IsFinished;
         }
 
@@ -110,10 +109,6 @@ namespace Coroutine {
             }
             this.current = this.enumerator.Current;
             return true;
-        }
-
-        internal bool IsWaitingForEvent() {
-            return this.current.IsWaitingForEvent();
         }
 
         /// <summary>

@@ -14,7 +14,7 @@ namespace Example {
 
             CoroutineHandler.Start(EmptyCoroutine());
 
-            CoroutineHandler.InvokeLater(new Wait(10), () => {
+            CoroutineHandler.InvokeLater(new Wait(5), () => {
                 Console.WriteLine("Raising test event");
                 CoroutineHandler.RaiseEvent(TestEvent);
             });
