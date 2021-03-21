@@ -335,6 +335,10 @@ namespace Tests {
             var gTc = cr.MaxMoveNextTime.Milliseconds > expected2 - errorbar2; // 95% accuracy.
             var lTd = cr.MaxMoveNextTime.Milliseconds < expected2 + errorbar2; // 95% accuracy.
             Assert.IsTrue(gTc && lTd, $"Maximum Move Next Time {cr.MaxMoveNextTime.Milliseconds} is invalid.");
+
+            cr.ResetStats();
+            Assert.IsTrue(cr.AverageMoveNextTime.Milliseconds == 0, "Invalid Coroutine Statistics.");
+            Assert.IsTrue(cr.MaxMoveNextTime.Milliseconds == 0, "Invalid Coroutine Statistics.");
         }
 
         [Test]

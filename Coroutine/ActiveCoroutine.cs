@@ -81,6 +81,15 @@ namespace Coroutine {
             return true;
         }
 
+        /// <summary>
+        /// Reset statistics related to this coroutine.
+        /// </summary>
+        public void ResetStats() {
+            this.TotalMoveNextTime = TimeSpan.Zero;
+            this.MoveNextCount = 1;
+            this.MaxMoveNextTime = TimeSpan.Zero;
+        }
+
         internal bool Tick(double deltaSeconds) {
             if (!this.WasCanceled && this.current.Tick(deltaSeconds))
                 this.MoveNext();
