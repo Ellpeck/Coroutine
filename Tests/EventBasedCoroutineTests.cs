@@ -268,7 +268,7 @@ namespace Tests {
             CoroutineHandler.RaiseEvent(myEvent);
             Assert.AreEqual(1, counterShouldExecuteAfter, $"ShouldExecuteAfter counter  {counterShouldExecuteAfter} is invalid.");
             Assert.AreEqual(1, counterShouldExecuteFinally, $"ShouldExecuteFinally counter  {counterShouldExecuteFinally} is invalid.");
-           
+
             before1.Cancel();
             after.Cancel();
             before0.Cancel();

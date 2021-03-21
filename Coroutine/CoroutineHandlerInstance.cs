@@ -132,7 +132,7 @@ namespace Coroutine {
             var coroutines = this.GetOutstandingCoroutines(evt);
             if (coroutines.Count > 0) {
                 coroutines.RemoveWhere(c => {
-                    var list = c.IsWaitingForEvent ? this.GetEventCoroutines(c.Event, true) : this.tickingCoroutines;
+                    var list = evt ? this.GetEventCoroutines(c.Event, true) : this.tickingCoroutines;
                     var position = list.BinarySearch(c);
                     list.Insert(position < 0 ? ~position : position, c);
                     return true;
