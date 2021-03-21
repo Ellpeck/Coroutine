@@ -13,7 +13,8 @@ namespace Coroutine {
         private readonly List<ActiveCoroutine> tickingCoroutines = new List<ActiveCoroutine>();
         private readonly Dictionary<Event, List<ActiveCoroutine>> eventCoroutines = new Dictionary<Event, List<ActiveCoroutine>>();
         private readonly HashSet<ActiveCoroutine> eventCoroutinesToRemove = new HashSet<ActiveCoroutine>();
-        private readonly HashSet<ActiveCoroutine> outstandingCoroutines = new HashSet<ActiveCoroutine>();
+        private readonly HashSet<ActiveCoroutine> outstandingEventCoroutines = new HashSet<ActiveCoroutine>();
+        private readonly HashSet<ActiveCoroutine> outstandingTickingCoroutines = new HashSet<ActiveCoroutine>();
         private readonly Stopwatch stopwatch = new Stopwatch();
 
         /// <summary>
@@ -47,7 +48,7 @@ namespace Coroutine {
         public ActiveCoroutine Start(IEnumerator<Wait> coroutine, string name = "", int priority = 0) {
             var inst = new ActiveCoroutine(coroutine, name, priority, this.stopwatch);
             if (inst.MoveNext())
-                this.outstandingCoroutines.Add(inst);
+                this.GetOutstandingCoroutines(inst.IsWaitingForEvent).Add(inst);
             return inst;
         }
 
@@ -74,7 +75,7 @@ namespace Coroutine {
                 if (c.Tick(deltaSeconds)) {
                     return true;
                 } else if (c.IsWaitingForEvent) {
-                    this.outstandingCoroutines.Add(c);
+                    this.outstandingEventCoroutines.Add(c);
                     return true;
                 }
                 return false;
@@ -106,7 +107,7 @@ namespace Coroutine {
                         this.eventCoroutinesToRemove.Add(c);
                     } else if (!c.IsWaitingForEvent) {
                         this.eventCoroutinesToRemove.Add(c);
-                        this.outstandingCoroutines.Add(c);
+                        this.outstandingTickingCoroutines.Add(c);
                     }
                 }
             }
@@ -128,17 +129,19 @@ namespace Coroutine {
                     return true;
                 });
             }
-            if (this.outstandingCoroutines.Count > 0) {
-                this.outstandingCoroutines.RemoveWhere(c => {
-                    // we only want to enqueue coroutines that relate to the current type
-                    if (c.IsWaitingForEvent != evt)
-                        return false;
-                    var list = evt ? this.GetEventCoroutines(c.Event, true) : this.tickingCoroutines;
+            var coroutines = this.GetOutstandingCoroutines(evt);
+            if (coroutines.Count > 0) {
+                coroutines.RemoveWhere(c => {
+                    var list = c.IsWaitingForEvent ? this.GetEventCoroutines(c.Event, true) : this.tickingCoroutines;
                     var position = list.BinarySearch(c);
                     list.Insert(position < 0 ? ~position : position, c);
                     return true;
                 });
             }
+        }
+
+        private HashSet<ActiveCoroutine> GetOutstandingCoroutines(bool evt) {
+            return evt ? this.outstandingEventCoroutines : this.outstandingTickingCoroutines;
         }
 
         private List<ActiveCoroutine> GetEventCoroutines(Event evt, bool create) {
