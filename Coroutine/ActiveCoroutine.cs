@@ -36,15 +36,11 @@ namespace Coroutine {
         /// </summary>
         public int MoveNextCount { get; private set; }
         /// <summary>
-        /// The maximum amount of time that <see cref="MoveNext"/> took.
-        /// This is the maximum amount of time that each "step", or each yield statement, of this coroutine took to execute.
+        /// The amount of time that the last <see cref="MoveNext"/> took.
+        /// This is the amount of time that this active coroutine took for the last "step", or yield statement.
         /// </summary>
-        public TimeSpan MaxMoveNextTime { get; private set; }
-        /// <summary>
-        /// The average amount of time that <see cref="MoveNext"/> took.
-        /// This is the average amount of time that each "step", or each yield statement, of this coroutine took to execute.
-        /// </summary>
-        public TimeSpan AverageMoveNextTime => new TimeSpan(this.TotalMoveNextTime.Ticks / this.MoveNextCount);
+        public TimeSpan LastMoveNextTime { get; private set; }
+
         /// <summary>
         /// An event that gets fired when this active coroutine finishes or gets cancelled.
         /// When this event is called, <see cref="IsFinished"/> is always true.
@@ -97,9 +93,8 @@ namespace Coroutine {
             this.stopwatch.Restart();
             var result = this.enumerator.MoveNext();
             this.stopwatch.Stop();
+            this.LastMoveNextTime = this.stopwatch.Elapsed;
             this.TotalMoveNextTime += this.stopwatch.Elapsed;
-            if (this.stopwatch.Elapsed > this.MaxMoveNextTime)
-                this.MaxMoveNextTime = this.stopwatch.Elapsed;
             this.MoveNextCount++;
 
             if (!result) {

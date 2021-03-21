@@ -56,8 +56,7 @@ namespace Example {
                     Console.WriteLine("By the way, the first coroutine has finished!");
                     Console.WriteLine($"{first.Name} data: {first.MoveNextCount} moves, " +
                                       $"{first.TotalMoveNextTime.TotalMilliseconds} total time, " +
-                                      $"{first.AverageMoveNextTime.TotalMilliseconds} average, " +
-                                      $"{first.MaxMoveNextTime.TotalMilliseconds} maximum");
+                                      $"{first.LastMoveNextTime.TotalMilliseconds} last time");
                     Environment.Exit(0);
                 }
             }
