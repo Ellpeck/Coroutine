@@ -313,7 +313,7 @@ namespace Tests {
         }
 
         [Test]
-        public void CoroutineStatsAre95PercentAccurate() {
+        public void CoroutineStatsAreUpdated() {
             static IEnumerator<Wait> CoroutineTakesMax500Ms() {
                 Thread.Sleep(200);
                 yield return new Wait(10);
@@ -324,17 +324,9 @@ namespace Tests {
             for (var i = 0; i < 5; i++)
                 CoroutineHandler.Tick(50);
 
-            const int expected1 = 350;
-            const float errorbar1 = 5 / 100f * expected1;
-            var gTa = cr.AverageMoveNextTime.Milliseconds > expected1 - errorbar1; // 95% accuracy.
-            var lTb = cr.AverageMoveNextTime.Milliseconds < expected1 + errorbar1; // 95% accuracy.
-            Assert.IsTrue(gTa && lTb, $"Average Move Next Time {cr.AverageMoveNextTime.Milliseconds} is invalid.");
-
-            const int expected2 = 500;
-            const float errorbar2 = 5 / 100f * expected2;
-            var gTc = cr.MaxMoveNextTime.Milliseconds > expected2 - errorbar2; // 95% accuracy.
-            var lTd = cr.MaxMoveNextTime.Milliseconds < expected2 + errorbar2; // 95% accuracy.
-            Assert.IsTrue(gTc && lTd, $"Maximum Move Next Time {cr.MaxMoveNextTime.Milliseconds} is invalid.");
+            Assert.IsTrue(cr.TotalMoveNextTime.TotalMilliseconds >= 700);
+            Assert.IsTrue(cr.LastMoveNextTime.TotalMilliseconds >= 500);
+            Assert.IsTrue(cr.MoveNextCount == 2);
         }
 
         [Test]
