@@ -301,5 +301,42 @@ namespace Tests {
             Assert.AreEqual(cr.Name, "Bird", "Incorrect name of the coroutine.");
         }
 
+        [Test]
+        public void MovingCoroutineTest()
+        {
+            var evt = new Event();
+            IEnumerator<Wait> MovingCoroutine() {
+                while (true) {
+                    yield return new Wait(evt);
+                    yield return new Wait(0d);
+                }
+            }
+
+            CoroutineHandler.Start(MovingCoroutine(), "MovingCoroutine");
+            CoroutineHandler.RaiseEvent(evt);
+            CoroutineHandler.RaiseEvent(evt);
+            CoroutineHandler.RaiseEvent(evt);
+            CoroutineHandler.RaiseEvent(evt);
+
+            CoroutineHandler.Tick(1d);
+            CoroutineHandler.Tick(1d);
+            CoroutineHandler.Tick(1d);
+            CoroutineHandler.Tick(1d);
+
+            CoroutineHandler.RaiseEvent(evt);
+            CoroutineHandler.Tick(1d);
+            CoroutineHandler.RaiseEvent(evt);
+            CoroutineHandler.Tick(1d);
+            CoroutineHandler.RaiseEvent(evt);
+            CoroutineHandler.Tick(1d);
+
+            CoroutineHandler.Tick(1d);
+            CoroutineHandler.RaiseEvent(evt);
+            CoroutineHandler.Tick(1d);
+            CoroutineHandler.RaiseEvent(evt);
+            CoroutineHandler.Tick(1d);
+            CoroutineHandler.RaiseEvent(evt);
+        }
+
     }
 }
