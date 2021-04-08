@@ -12,7 +12,7 @@ namespace Coroutine {
 
         private readonly List<ActiveCoroutine> tickingCoroutines = new List<ActiveCoroutine>();
         private readonly Dictionary<Event, List<ActiveCoroutine>> eventCoroutines = new Dictionary<Event, List<ActiveCoroutine>>();
-        private readonly HashSet<ActiveCoroutine> eventCoroutinesToRemove = new HashSet<ActiveCoroutine>();
+        private readonly HashSet<(Event, ActiveCoroutine)> eventCoroutinesToRemove = new HashSet<(Event, ActiveCoroutine)>();
         private readonly HashSet<ActiveCoroutine> outstandingEventCoroutines = new HashSet<ActiveCoroutine>();
         private readonly HashSet<ActiveCoroutine> outstandingTickingCoroutines = new HashSet<ActiveCoroutine>();
         private readonly Stopwatch stopwatch = new Stopwatch();
@@ -101,12 +101,13 @@ namespace Coroutine {
             if (coroutines != null) {
                 for (var i = 0; i < coroutines.Count; i++) {
                     var c = coroutines[i];
-                    if (this.eventCoroutinesToRemove.Contains(c))
+                    var tup = (c.Event, c);
+                    if (this.eventCoroutinesToRemove.Contains(tup))
                         continue;
                     if (c.OnEvent(evt)) {
-                        this.eventCoroutinesToRemove.Add(c);
+                        this.eventCoroutinesToRemove.Add(tup);
                     } else if (!c.IsWaitingForEvent) {
-                        this.eventCoroutinesToRemove.Add(c);
+                        this.eventCoroutinesToRemove.Add(tup);
                         this.outstandingTickingCoroutines.Add(c);
                     }
                 }
@@ -125,7 +126,7 @@ namespace Coroutine {
             // RemoveWhere is twice as fast as iterating and then clearing
             if (this.eventCoroutinesToRemove.Count > 0) {
                 this.eventCoroutinesToRemove.RemoveWhere(c => {
-                    this.GetEventCoroutines(c.Event, false).Remove(c);
+                    this.GetEventCoroutines(c.Item1, false).Remove(c.Item2);
                     return true;
                 });
             }

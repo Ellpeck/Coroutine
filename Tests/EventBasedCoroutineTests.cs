@@ -302,9 +302,9 @@ namespace Tests {
         }
 
         [Test]
-        public void MovingCoroutineTest()
-        {
+        public void MovingCoroutineTest() {
             var evt = new Event();
+
             IEnumerator<Wait> MovingCoroutine() {
                 while (true) {
                     yield return new Wait(evt);
@@ -312,7 +312,7 @@ namespace Tests {
                 }
             }
 
-            CoroutineHandler.Start(MovingCoroutine(), "MovingCoroutine");
+            var moving = CoroutineHandler.Start(MovingCoroutine(), "MovingCoroutine");
             CoroutineHandler.RaiseEvent(evt);
             CoroutineHandler.RaiseEvent(evt);
             CoroutineHandler.RaiseEvent(evt);
@@ -336,6 +336,8 @@ namespace Tests {
             CoroutineHandler.RaiseEvent(evt);
             CoroutineHandler.Tick(1d);
             CoroutineHandler.RaiseEvent(evt);
+
+            moving.Cancel();
         }
 
     }
