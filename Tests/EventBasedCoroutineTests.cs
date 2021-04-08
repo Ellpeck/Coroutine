@@ -301,5 +301,40 @@ namespace Tests {
             Assert.AreEqual(cr.Name, "Bird", "Incorrect name of the coroutine.");
         }
 
+        [Test]
+        public void TestNestedCoroutineWithMoveToTime()
+        {
+            var frequentEvent = new Event();
+            var onceInAWhileEvent = new Event();
+
+            IEnumerator<Wait> FrequentCoroutine() {
+                int i = 0;
+                while (true) {
+                    yield return new Wait(frequentEvent);
+                    if (i % 2 == 0) {
+                        CoroutineHandler.RaiseEvent(onceInAWhileEvent);
+                    }
+
+                    i++;
+                }
+            }
+
+            IEnumerator<Wait> OnceInAWhileCoroutine() {
+                while (true) {
+                    yield return new Wait(onceInAWhileEvent);
+                    for (int i = 0; i < 5; i++) {
+                        yield return new Wait(0d);
+                    }
+                }
+            }
+
+            CoroutineHandler.Start(FrequentCoroutine());
+            CoroutineHandler.Start(OnceInAWhileCoroutine());
+
+            CoroutineHandler.RaiseEvent(frequentEvent);
+            CoroutineHandler.RaiseEvent(frequentEvent);
+            CoroutineHandler.RaiseEvent(frequentEvent);
+            CoroutineHandler.RaiseEvent(frequentEvent);
+        }
     }
 }
