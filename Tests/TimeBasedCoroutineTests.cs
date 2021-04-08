@@ -442,5 +442,6 @@ namespace Tests {
             Assert.AreEqual(1, counterChild, "Child counter is invalid at event 4.");
             always.Cancel();
         }
+
     }
 }
