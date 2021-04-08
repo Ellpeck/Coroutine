@@ -302,39 +302,40 @@ namespace Tests {
         }
 
         [Test]
-        public void TestNestedCoroutineWithMoveToTime()
+        public void MovingCoroutineTest()
         {
-            var frequentEvent = new Event();
-            var onceInAWhileEvent = new Event();
-
-            IEnumerator<Wait> FrequentCoroutine() {
-                int i = 0;
+            var evt = new Event();
+            IEnumerator<Wait> MovingCoroutine() {
                 while (true) {
-                    yield return new Wait(frequentEvent);
-                    if (i % 2 == 0) {
-                        CoroutineHandler.RaiseEvent(onceInAWhileEvent);
-                    }
-
-                    i++;
+                    yield return new Wait(evt);
+                    yield return new Wait(0d);
                 }
             }
 
-            IEnumerator<Wait> OnceInAWhileCoroutine() {
-                while (true) {
-                    yield return new Wait(onceInAWhileEvent);
-                    for (int i = 0; i < 5; i++) {
-                        yield return new Wait(0d);
-                    }
-                }
-            }
+            CoroutineHandler.Start(MovingCoroutine(), "MovingCoroutine");
+            CoroutineHandler.RaiseEvent(evt);
+            CoroutineHandler.RaiseEvent(evt);
+            CoroutineHandler.RaiseEvent(evt);
+            CoroutineHandler.RaiseEvent(evt);
 
-            CoroutineHandler.Start(FrequentCoroutine());
-            CoroutineHandler.Start(OnceInAWhileCoroutine());
+            CoroutineHandler.Tick(1d);
+            CoroutineHandler.Tick(1d);
+            CoroutineHandler.Tick(1d);
+            CoroutineHandler.Tick(1d);
 
-            CoroutineHandler.RaiseEvent(frequentEvent);
-            CoroutineHandler.RaiseEvent(frequentEvent);
-            CoroutineHandler.RaiseEvent(frequentEvent);
-            CoroutineHandler.RaiseEvent(frequentEvent);
+            CoroutineHandler.RaiseEvent(evt);
+            CoroutineHandler.Tick(1d);
+            CoroutineHandler.RaiseEvent(evt);
+            CoroutineHandler.Tick(1d);
+            CoroutineHandler.RaiseEvent(evt);
+            CoroutineHandler.Tick(1d);
+
+            CoroutineHandler.Tick(1d);
+            CoroutineHandler.RaiseEvent(evt);
+            CoroutineHandler.Tick(1d);
+            CoroutineHandler.RaiseEvent(evt);
+            CoroutineHandler.Tick(1d);
+            CoroutineHandler.RaiseEvent(evt);
         }
     }
 }
