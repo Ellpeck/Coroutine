@@ -10,7 +10,7 @@
         <PackageTags>coroutine utility unity</PackageTags>
         <PackageProjectUrl>https://github.com/Ellpeck/Coroutine</PackageProjectUrl>
         <RepositoryUrl>https://github.com/Ellpeck/Coroutine</RepositoryUrl>
-        <PackageLicenseUrl>https://github.com/Ellpeck/Coroutine/blob/master/LICENSE.md</PackageLicenseUrl>
+        <PackageLicenseUrl>https://github.com/Ellpeck/Coroutine/blob/main/LICENSE.md</PackageLicenseUrl>
         <VersionPrefix>2.1.1</VersionPrefix>
     </PropertyGroup>
 </Project>

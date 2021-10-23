@@ -67,4 +67,4 @@ CoroutineHandler.RaiseEvent(TestEvent);
 ```
 
 ## Additional Examples
-For additional examples, take a look at the [Example class](https://github.com/Ellpeck/Coroutine/blob/master/Example/Example.cs).
+For additional examples, take a look at the [Example class](https://github.com/Ellpeck/Coroutine/blob/main/Example/Example.cs).
