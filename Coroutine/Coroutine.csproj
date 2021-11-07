@@ -13,7 +13,7 @@
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageIcon>Logo.png</PackageIcon>
-        <VersionPrefix>2.1.1</VersionPrefix>
+        <VersionPrefix>2.1.2</VersionPrefix>
     </PropertyGroup>
     
     <ItemGroup>
