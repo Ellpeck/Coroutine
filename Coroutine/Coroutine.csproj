@@ -3,14 +3,21 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
     </PropertyGroup>
-
+    
     <PropertyGroup>
         <Authors>Ellpeck</Authors>
         <Description>A simple implementation of Unity's Coroutines to be used for any C# project</Description>
         <PackageTags>coroutine utility unity</PackageTags>
         <PackageProjectUrl>https://github.com/Ellpeck/Coroutine</PackageProjectUrl>
         <RepositoryUrl>https://github.com/Ellpeck/Coroutine</RepositoryUrl>
-        <PackageLicenseUrl>https://github.com/Ellpeck/Coroutine/blob/master/LICENSE.md</PackageLicenseUrl>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageIcon>Logo.png</PackageIcon>
         <VersionPrefix>2.1.0</VersionPrefix>
     </PropertyGroup>
+    
+    <ItemGroup>
+        <None Include="../README.md" Pack="true" PackagePath="" />
+        <None Include="../Logo.png" Pack="true" PackagePath="" />
+    </ItemGroup>
 </Project>

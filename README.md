@@ -1,5 +1,6 @@
-# Coroutine
-A simple implementation of Unity's Coroutines to be used for any C# project
+![The Coroutine logo](https://raw.githubusercontent.com/Ellpeck/Coroutine/main/Logo.png)
+
+**Coroutine** is a simple implementation of Unity's Coroutines to be used for any C# project
 
 # Features
 Coroutine adds the ability to run coroutines. Coroutines are methods that run in parallel to the rest of the application through the use of an `Enumerator`. This allows for the coroutine to pause execution using the `yield return` statement.
