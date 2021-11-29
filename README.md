@@ -11,8 +11,8 @@ There are two predefined ways to pause a coroutine:
 
 Additionally, Coroutine provides the following features:
 - Creation of custom events to wait for
-- Creation of custom wait conditions
 - No multi-threading, which allows for any kind of process to be executed in a coroutine, including rendering
+- Thread-safety, which allows for coroutines to be started from different threads
 
 # How to Use
 ## Setting up the CoroutineHandler
