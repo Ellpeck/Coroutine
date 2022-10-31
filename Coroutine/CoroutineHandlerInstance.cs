@@ -16,15 +16,26 @@ namespace Coroutine {
         private readonly HashSet<ActiveCoroutine> outstandingEventCoroutines = new HashSet<ActiveCoroutine>();
         private readonly HashSet<ActiveCoroutine> outstandingTickingCoroutines = new HashSet<ActiveCoroutine>();
         private readonly Stopwatch stopwatch = new Stopwatch();
+        private readonly object lockObject = new object();
 
         /// <summary>
         /// The amount of <see cref="ActiveCoroutine"/> instances that are currently waiting for a tick (waiting for time to pass)
         /// </summary>
-        public int TickingCount => this.tickingCoroutines.Count;
+        public int TickingCount {
+            get {
+                lock (this.lockObject)
+                    return this.tickingCoroutines.Count;
+            }
+        }
         /// <summary>
         /// The amount of <see cref="ActiveCoroutine"/> instances that are currently waiting for an <see cref="Event"/>
         /// </summary>
-        public int EventCount => this.eventCoroutines.Sum(c => c.Value.Count);
+        public int EventCount {
+            get {
+                lock (this.lockObject)
+                    return this.eventCoroutines.Sum(c => c.Value.Count);
+            }
+        }
 
         /// <summary>
         /// Starts the given coroutine, returning a <see cref="ActiveCoroutine"/> object for management.
@@ -47,8 +58,10 @@ namespace Coroutine {
         /// <returns>An active coroutine object representing this coroutine</returns>
         public ActiveCoroutine Start(IEnumerator<Wait> coroutine, string name = "", int priority = 0) {
             var inst = new ActiveCoroutine(coroutine, name, priority, this.stopwatch);
-            if (inst.MoveNext())
-                this.GetOutstandingCoroutines(inst.IsWaitingForEvent).Add(inst);
+            if (inst.MoveNext()) {
+                lock (this.lockObject)
+                    this.GetOutstandingCoroutines(inst.IsWaitingForEvent).Add(inst);
+            }
             return inst;
         }
 
@@ -70,16 +83,18 @@ namespace Coroutine {
         /// </summary>
         /// <param name="deltaSeconds">The amount of seconds that have passed since the last time this method was invoked</param>
         public void Tick(double deltaSeconds) {
-            this.MoveOutstandingCoroutines(false);
-            this.tickingCoroutines.RemoveAll(c => {
-                if (c.Tick(deltaSeconds)) {
-                    return true;
-                } else if (c.IsWaitingForEvent) {
-                    this.outstandingEventCoroutines.Add(c);
-                    return true;
-                }
-                return false;
-            });
+            lock (this.lockObject) {
+                this.MoveOutstandingCoroutines(false);
+                this.tickingCoroutines.RemoveAll(c => {
+                    if (c.Tick(deltaSeconds)) {
+                        return true;
+                    } else if (c.IsWaitingForEvent) {
+                        this.outstandingEventCoroutines.Add(c);
+                        return true;
+                    }
+                    return false;
+                });
+            }
         }
 
         /// <summary>
@@ -96,19 +111,21 @@ namespace Coroutine {
         /// </summary>
         /// <param name="evt">The event to raise</param>
         public void RaiseEvent(Event evt) {
-            this.MoveOutstandingCoroutines(true);
-            var coroutines = this.GetEventCoroutines(evt, false);
-            if (coroutines != null) {
-                for (var i = 0; i < coroutines.Count; i++) {
-                    var c = coroutines[i];
-                    var tup = (c.Event, c);
-                    if (this.eventCoroutinesToRemove.Contains(tup))
-                        continue;
-                    if (c.OnEvent(evt)) {
-                        this.eventCoroutinesToRemove.Add(tup);
-                    } else if (!c.IsWaitingForEvent) {
-                        this.eventCoroutinesToRemove.Add(tup);
-                        this.outstandingTickingCoroutines.Add(c);
+            lock (this.lockObject) {
+                this.MoveOutstandingCoroutines(true);
+                var coroutines = this.GetEventCoroutines(evt, false);
+                if (coroutines != null) {
+                    for (var i = 0; i < coroutines.Count; i++) {
+                        var c = coroutines[i];
+                        var tup = (c.Event, c);
+                        if (this.eventCoroutinesToRemove.Contains(tup))
+                            continue;
+                        if (c.OnEvent(evt)) {
+                            this.eventCoroutinesToRemove.Add(tup);
+                        } else if (!c.IsWaitingForEvent) {
+                            this.eventCoroutinesToRemove.Add(tup);
+                            this.outstandingTickingCoroutines.Add(c);
+                        }
                     }
                 }
             }
@@ -119,7 +136,8 @@ namespace Coroutine {
         /// </summary>
         /// <returns>All active coroutines</returns>
         public IEnumerable<ActiveCoroutine> GetActiveCoroutines() {
-            return this.tickingCoroutines.Concat(this.eventCoroutines.Values.SelectMany(c => c));
+            lock (this.lockObject)
+                return this.tickingCoroutines.Concat(this.eventCoroutines.Values.SelectMany(c => c));
         }
 
         private void MoveOutstandingCoroutines(bool evt) {
