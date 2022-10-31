@@ -9,7 +9,7 @@ pipeline {
 
     stage('Pack') {
       steps {
-        sh 'find . -type f -name \\\'*.nupkg\\\' -delete'
+        sh 'find . -type f -name "*.nupkg" -delete'
         sh 'dotnet pack --version-suffix ${BUILD_NUMBER}'
       }
     }
@@ -19,7 +19,7 @@ pipeline {
         branch 'main'
       }
       steps {
-        sh 'dotnet nuget push -s http://localhost:5000/v3/index.json **/*.nupkg -k $BAGET -n true'
+        sh 'dotnet nuget push -s http://localhost:5000/v3/index.json **/*.nupkg -k $BAGET -n'
       }
     }
   }
