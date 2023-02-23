@@ -9,19 +9,19 @@ namespace Example {
         private static readonly Event TestEvent = new Event();
 
         public static void Main() {
-            var seconds = CoroutineHandler.Start(WaitSeconds(), "Awesome Waiting Coroutine");
-            CoroutineHandler.Start(PrintEvery10Seconds(seconds));
+            var seconds = CoroutineHandler.Start(Example.WaitSeconds(), "Awesome Waiting Coroutine");
+            CoroutineHandler.Start(Example.PrintEvery10Seconds(seconds));
 
-            CoroutineHandler.Start(EmptyCoroutine());
+            CoroutineHandler.Start(Example.EmptyCoroutine());
 
             CoroutineHandler.InvokeLater(new Wait(5), () => {
                 Console.WriteLine("Raising test event");
-                CoroutineHandler.RaiseEvent(TestEvent);
+                CoroutineHandler.RaiseEvent(Example.TestEvent);
             });
-            CoroutineHandler.InvokeLater(new Wait(TestEvent), () => Console.WriteLine("Example event received"));
+            CoroutineHandler.InvokeLater(new Wait(Example.TestEvent), () => Console.WriteLine("Example event received"));
 
-            CoroutineHandler.InvokeLater(new Wait(TestEvent), () => Console.WriteLine("I am invoked after 'Example event received'"), priority: -5);
-            CoroutineHandler.InvokeLater(new Wait(TestEvent), () => Console.WriteLine("I am invoked before 'Example event received'"), priority: 2);
+            CoroutineHandler.InvokeLater(new Wait(Example.TestEvent), () => Console.WriteLine("I am invoked after 'Example event received'"), priority: -5);
+            CoroutineHandler.InvokeLater(new Wait(Example.TestEvent), () => Console.WriteLine("I am invoked before 'Example event received'"), priority: 2);
 
             var lastTime = DateTime.Now;
             while (true) {
@@ -38,7 +38,7 @@ namespace Example {
             Console.WriteLine("After 1 second " + DateTime.Now);
             yield return new Wait(9);
             Console.WriteLine("After 10 seconds " + DateTime.Now);
-            CoroutineHandler.Start(NestedCoroutine());
+            CoroutineHandler.Start(Example.NestedCoroutine());
             yield return new Wait(5);
             Console.WriteLine("After 5 more seconds " + DateTime.Now);
             yield return new Wait(10);

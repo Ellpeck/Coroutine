@@ -75,7 +75,7 @@ namespace Coroutine {
         /// <param name="priority">The <see cref="ActiveCoroutine.Priority"/> that the underlying coroutine should have. The higher the priority, the earlier it is advanced compared to other coroutines that advance around the same time. Defaults to 0.</param>
         /// <returns>An active coroutine object representing this coroutine</returns>
         public ActiveCoroutine InvokeLater(Wait wait, Action action, string name = "", int priority = 0) {
-            return this.Start(InvokeLaterImpl(wait, action), name, priority);
+            return this.Start(CoroutineHandlerInstance.InvokeLaterImpl(wait, action), name, priority);
         }
 
         /// <summary>

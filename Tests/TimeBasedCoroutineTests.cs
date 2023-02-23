@@ -164,7 +164,7 @@ namespace Tests {
                 // Nested corotuine starting.
                 var p = CoroutineHandler.Start(Parent());
                 // Nested corotuine starting in OnFinished.
-                p.OnFinished += ac => CoroutineHandler.Start(Child());
+                p.OnFinished += _ => CoroutineHandler.Start(Child());
             }
 
             var always = CoroutineHandler.Start(AlwaysRunning());
@@ -408,7 +408,7 @@ namespace Tests {
                 var p = CoroutineHandler.Start(Parent());
                 CoroutineHandler.RaiseEvent(onParentCreated);
                 // Nested corotuine starting in OnFinished.
-                p.OnFinished += ac => {
+                p.OnFinished += _ => {
                     CoroutineHandler.Start(Child());
                     CoroutineHandler.RaiseEvent(onChildCreated);
                 };

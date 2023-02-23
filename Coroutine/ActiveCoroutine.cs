@@ -84,7 +84,7 @@ namespace Coroutine {
         }
 
         internal bool OnEvent(Event evt) {
-            if (!this.WasCanceled && Equals(this.current.Event, evt))
+            if (!this.WasCanceled && object.Equals(this.current.Event, evt))
                 this.MoveNext();
             return this.IsFinished;
         }
