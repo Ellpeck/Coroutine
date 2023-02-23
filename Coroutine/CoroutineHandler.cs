@@ -25,15 +25,21 @@ namespace Coroutine {
             return CoroutineHandler.Instance.Start(coroutine, name, priority);
         }
 
-        /// <inheritdoc cref="CoroutineHandlerInstance.InvokeLater"/>
+        /// <inheritdoc cref="CoroutineHandlerInstance.InvokeLater(Wait,Action,string,int)"/>
         public static ActiveCoroutine InvokeLater(Wait wait, Action action, string name = "", int priority = 0) {
             return CoroutineHandler.Instance.InvokeLater(wait, action, name, priority);
+        }
+
+        /// <inheritdoc cref="CoroutineHandlerInstance.InvokeLater(Event,Action,string,int)"/>
+        public static ActiveCoroutine InvokeLater(Event evt, Action action, string name = "", int priority = 0) {
+            return CoroutineHandler.Instance.InvokeLater(evt, action, name, priority);
         }
 
         /// <inheritdoc cref="CoroutineHandlerInstance.Tick(double)"/>
         public static void Tick(double deltaSeconds) {
             CoroutineHandler.Instance.Tick(deltaSeconds);
         }
+
         /// <inheritdoc cref="CoroutineHandlerInstance.Tick(TimeSpan)"/>
         public static void Tick(TimeSpan delta) {
             CoroutineHandler.Instance.Tick(delta);

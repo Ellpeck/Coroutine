@@ -79,6 +79,19 @@ namespace Coroutine {
         }
 
         /// <summary>
+        /// Causes the given action to be invoked after the given <see cref="Event"/>.
+        /// This is equivalent to a coroutine that waits for the given wait and then executes the given <see cref="Action"/>.
+        /// </summary>
+        /// <param name="evt">The event to wait for</param>
+        /// <param name="action">The action to execute after waiting</param>
+        /// <param name="name">The <see cref="ActiveCoroutine.Name"/> that the underlying coroutine should have. Defaults to an empty string.</param>
+        /// <param name="priority">The <see cref="ActiveCoroutine.Priority"/> that the underlying coroutine should have. The higher the priority, the earlier it is advanced compared to other coroutines that advance around the same time. Defaults to 0.</param>
+        /// <returns>An active coroutine object representing this coroutine</returns>
+        public ActiveCoroutine InvokeLater(Event evt, Action action, string name = "", int priority = 0) {
+            return this.InvokeLater(new Wait(evt), action, name, priority);
+        }
+
+        /// <summary>
         /// Ticks this coroutine handler, causing all time-based <see cref="Wait"/>s to be ticked.
         /// </summary>
         /// <param name="deltaSeconds">The amount of seconds that have passed since the last time this method was invoked</param>
