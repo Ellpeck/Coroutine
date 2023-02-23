@@ -2,6 +2,7 @@
     <PropertyGroup>
         <TargetFrameworks>net45;netstandard2.0;net6.0</TargetFrameworks>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <IsTrimmable>true</IsTrimmable>
     </PropertyGroup>
     
     <PropertyGroup>
